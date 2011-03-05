@@ -1,5 +1,5 @@
-Puffin is a collection of useful stuff for writing OpenGL programs, with a longer term aim of expanding into a tool for "creative coding", similar to Processing.org, Cinder and OpenFrameworks. It strives to conform to OpenGL 3.x.
+Puffin is a collection of useful stuff for writing OpenGL programs, with a longer term aim of expanding into a tool for "creative coding", similar to Processing.org, Cinder and OpenFrameworks. 
 
-Puffin is being developed in C on top of SDL, and makes use of GLEW to load OpenGL extensions.
+Puffin is being developed in C on top of SDL, and makes use of GLEW to load OpenGL extensions. It's mainly built around OpenGL 2.0, but 1.4 with ARB extensions might see some support. OpenGL 3.0 deprecations will not be used.
 
 Puffins are my favourite birds, after blue tits.
