@@ -2,6 +2,11 @@
 #define PUFFIN_H
 #include <stdbool.h>
 #include <SDL/SDL.h>
+#ifdef PUFFIN_GLEWDOTFRAMEWORK
+#include <GLEW/glew.h>
+#else
+#include <GL/glew.h>
+#endif
 
 typedef struct
 {
@@ -41,14 +46,16 @@ PFNtexture;
 typedef struct
 {
     GLfloat* projectionMatrix;
-    SDL_Surface* screen;
     int width;
     int height;
 }
 PFNview;
 
-void pfnViewInit(PFNview*,int, int, float);
-void pfnViewResize(PFNview*,int, int);
+void pfnInit(int, int);
+
+void pfnWindowResize(int, int);
+
+void pfnViewInit(PFNview*, float);
 
 void pfnMeshInit(PFNmesh*);
 void pfnMeshLoadOBJ(PFNmesh*, char const*);

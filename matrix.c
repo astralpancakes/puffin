@@ -1,6 +1,10 @@
 #include <stdbool.h>
 #include <math.h>
+#ifdef PUFFIN_GLEWDOTFRAMEWORK
+#include <GLEW/glew.h>
+#else
 #include <GL/glew.h>
+#endif
 
 GLfloat* pfnMatrixTranslate(float X, float Y, float Z)
 {
