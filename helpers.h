@@ -3,8 +3,4 @@
 
 char* readFile(char const*);
 
-
-
-
-
 #endif

@@ -57,21 +57,18 @@ void pfnViewInit(PFNview* view, float fov)
 void pfnMeshInit(PFNmesh* mesh) // zero the modelview matrix of the mesh
 {
     for (int i=0;i < 15; i++)
-        mesh->modelView[i] = 0.0f;
+		mesh->modelView[i] = 0.0f;
+	
     mesh->modelView[0] = 1.0f;
     mesh->modelView[5] = 1.0f;
     mesh->modelView[10] = 1.0f;
     mesh->modelView[15] = 1.0f;
-
 }
 
 void pfnMeshLoadOBJ(PFNmesh* mesh, char const* name)
 {
     GLfloat* obj = loadOBJ(name, &mesh->vertexCount);
     mesh->verts = (GLfloat*)malloc(sizeof(PFNvertex)*mesh->vertexCount);
-
-
-    //srand(125); // XD
 
     for (int i=0;i<mesh->vertexCount;++i)
     {
@@ -125,7 +122,6 @@ void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
 		GLint uniformNormalMatrix = glGetUniformLocationARB(shader->shaderProgram, "modelviewMatrix");
 		glUniformMatrix4fvARB(uniformNormalMatrix, 1, GL_FALSE, mesh->modelView);
 
-		//shaderProgram = 666;
 		GLint vertexPosition = glGetAttribLocationARB(shader->shaderProgram, "vertexPosition");
 		GLint vertexColor = glGetAttribLocationARB(shader->shaderProgram, "vertexColor");
 		GLint vertexTexture = glGetAttribLocationARB(shader->shaderProgram, "vertexTexture");
@@ -291,42 +287,43 @@ surface = SDL_LoadBMP(name);
 GLenum texture_format;
 GLint  nOfColors;
 
-	// Check that the image's width is a power of 2
+#ifdef PUFFIN_SQUAWK
+	printf("Loading image %s...\n", name);
 	if ( (surface->w & (surface->w - 1)) != 0 ) {
-//		printf("warning: image.bmp's width is not a power of 2\n");
+		printf("Warning: Width of %s is not a power of 2\n",name);
 	}
 
-	// Also check if the height is a power of 2
+
 	if ( (surface->h & (surface->h - 1)) != 0 ) {
-//		printf("warning: image.bmp's height is not a power of 2\n");
+		printf("Warning: Height of %s is not a power of 2\n",name);
 	}
-
-        // get the number of channels in the SDL surface
-        nOfColors = surface->format->BytesPerPixel;
+#endif
+	
+		nOfColors = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
         if (nOfColors == 4)     // contains an alpha channel
         {
                 if (surface->format->Rmask == 0x000000ff)
                         texture_format = GL_RGBA;
                 else
                         texture_format = GL_BGRA;
-        } else if (nOfColors == 3)     // no alpha channel
+        } 
+		else if (nOfColors == 3)     // no alpha channel
         {
                 if (surface->format->Rmask == 0x000000ff)
                         texture_format = GL_RGB;
                 else
                         texture_format = GL_BGR;
-        } else {
-//                printf("warning: the image is not truecolor..  this will probably break\n");
-//                // this error should not go unhandled
+        } 
+		else 
+		{
+                printf("warning: %s is not truecolor\n",name);
         }
 
 glGenTextures(1,&(texture->texture));
 glBindTexture(GL_TEXTURE_2D, texture->texture);
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 glTexImage2D(GL_TEXTURE_2D,0,nOfColors,surface->w,surface->h,0,texture_format,GL_UNSIGNED_BYTE,surface->pixels);
-
 if(surface)
-SDL_FreeSurface(surface);
+	SDL_FreeSurface(surface);
 }

@@ -24,8 +24,8 @@ GLfloat* loadOBJ(char const* name,int* vertexCount)
         float f1,f2,f3;
         int d1,d2,d3,d4,d5,d6,d7,d8,d9;
         int vCount = 0; //vertex counter
-        int nCount = 0; //normal counter
-        int tCount = 0; //texture counter
+        int nCount = 0; //vertex normal counter
+        int tCount = 0; //vertex texture counter
         int fCount = 0; //face counter
         char buffer[256] = {0};
 
@@ -68,7 +68,7 @@ GLfloat* loadOBJ(char const* name,int* vertexCount)
                                 fscanf(f,"%d/%d/%d",&a,&b,&c);
                                 fscanf(f,"%d/%d/%d",&a,&b,&c);
                                 fCount++;
-                                while (fscanf(f,"%d/%d/%d",&a,&b,&c) == 3)
+                                while (fscanf(f,"%d/%d/%d",&a,&b,&c) == 3) // loop until /n
                                 {
                                     fCount++;
                                 }
@@ -78,7 +78,7 @@ GLfloat* loadOBJ(char const* name,int* vertexCount)
                                 fscanf(f,"%d/%d",&a,&b);
                                 fscanf(f,"%d/%d",&a,&b);
                                 fCount++;
-                                while (fscanf(f,"%d/%d",&a,&b) == 2)
+                                while (fscanf(f,"%d/%d",&a,&b) == 2) // loop until /n
                                 {
                                     fCount++;
                                 }
@@ -88,7 +88,7 @@ GLfloat* loadOBJ(char const* name,int* vertexCount)
                                 fscanf(f,"%d",&a);
                                 fscanf(f,"%d",&a);
                                 fCount++;
-                                while (fscanf(f,"%d",&a) > 0)
+                                while (fscanf(f,"%d",&a) > 0) // loop until /n
                                 {
                                     fCount++;
                                 }
