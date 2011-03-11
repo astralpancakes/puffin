@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+//globals
+
 struct {
 	int windowHeight;
 	int windowWidth;
@@ -19,7 +22,7 @@ struct {
 	int glMinorVersion;
 } puffin;
 
-void pfnInit(int width, int height)
+void pufInit(int width, int height)
 {
 	if (height == 0)	// prevent divide by zero etc
         height = 1;
@@ -29,17 +32,18 @@ void pfnInit(int width, int height)
 	puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
 	glewInit();
 
+	//get OpenGL version
+	
 	puffin.glMajorVersion = atoi(&glGetString(GL_VERSION)[0]);
 	puffin.glMinorVersion = atoi(&glGetString(GL_VERSION)[2]);
-
 }
 
-void pfnWindowResize(int width, int height)
+void pufWindowResize(int width, int height)
 {
     puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
 }
 
-void pfnViewInit(PFNview* view, float fov)
+void pufViewInit(PUFview* view, float fov, float nearClip, float farClip)
 {
     view->width = puffin.windowWidth;
     view->height = puffin.windowHeight;
@@ -50,11 +54,10 @@ void pfnViewInit(PFNview* view, float fov)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    view->projectionMatrix = pfnMatrixProject(fov, (float)view->width/view->height, 0.1f, 100.0f,true);
-	
+    pufMatrixProject(fov, view->width, view->height, nearClip, farClip,true, view->projectionMatrix);	
 }
 
-void pfnMeshInit(PFNmesh* mesh) // zero the modelview matrix of the mesh
+void pufMeshInit(PUFmesh* mesh) // zero the modelview matrix of the mesh
 {
     for (int i=0;i < 15; i++)
 		mesh->modelView[i] = 0.0f;
@@ -65,10 +68,10 @@ void pfnMeshInit(PFNmesh* mesh) // zero the modelview matrix of the mesh
     mesh->modelView[15] = 1.0f;
 }
 
-void pfnMeshLoadOBJ(PFNmesh* mesh, char const* name)
+void pufMeshLoadOBJ(PUFmesh* mesh, char const* name)
 {
-    GLfloat* obj = loadOBJ(name, &mesh->vertexCount);
-    mesh->verts = (GLfloat*)malloc(sizeof(PFNvertex)*mesh->vertexCount);
+    GLfloat* obj = pufLoadOBJ(name, &mesh->vertexCount);
+    mesh->verts = (GLfloat*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
 
     for (int i=0;i<mesh->vertexCount;++i)
     {
@@ -88,26 +91,26 @@ void pfnMeshLoadOBJ(PFNmesh* mesh, char const* name)
     free((void*)obj);
 }
 
-void pfnMeshBind(PFNmesh* mesh)
+void pufMeshBind(PUFmesh* mesh)
 {
 	if (puffin.glMajorVersion == 1)
 	{
 		glGenBuffersARB(1, &mesh->vertexBuffer);
 		glBindBufferARB(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-		glBufferDataARB(GL_ARRAY_BUFFER, sizeof(PFNvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
-		glBufferSubDataARB(GL_ARRAY_BUFFER, 0, sizeof(PFNvertex)*mesh->vertexCount, mesh->verts);
+		glBufferDataARB(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
+		glBufferSubDataARB(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);
 	}
 	else {
 		glGenBuffers(1, &mesh->vertexBuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(PFNvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PFNvertex)*mesh->vertexCount, mesh->verts);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);
 	}
 
 	
 }
 
-void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
+void pufMeshDraw(PUFmesh* mesh, PUFview* view, PUFshader* shader)
 {
 	if (puffin.glMajorVersion == 1)
 	{
@@ -116,7 +119,7 @@ void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
 		GLint uniformModelviewProjection = glGetUniformLocationARB(shader->shaderProgram, "modelviewProjection");
 		GLfloat modelviewProjectionMatrix[16];
 	
-		pfnMatrixMult(view->projectionMatrix, mesh->modelView, modelviewProjectionMatrix);
+		pufMatrixMult(view->projectionMatrix, mesh->modelView, modelviewProjectionMatrix);
 		glUniformMatrix4fvARB(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
 
 		GLint uniformNormalMatrix = glGetUniformLocationARB(shader->shaderProgram, "modelviewMatrix");
@@ -140,12 +143,12 @@ void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
 		glBindBufferARB(GL_ARRAY_BUFFER, mesh->vertexBuffer);
 
 
-		glVertexAttribPointerARB(vertexPosition, 3, GL_FLOAT, 1, sizeof(PFNvertex), (void*)0);
-		glVertexAttribPointerARB(vertexColor, 3, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
-		glVertexAttribPointerARB(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
-		glVertexAttribPointerARB(vertexNormal, 3, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
-		glVertexAttribPointerARB(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
-		glVertexAttribPointerARB(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
+		glVertexAttribPointerARB(vertexPosition, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0);
+		glVertexAttribPointerARB(vertexColor, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
+		glVertexAttribPointerARB(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
+		glVertexAttribPointerARB(vertexNormal, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
+		glVertexAttribPointerARB(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
+		glVertexAttribPointerARB(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
 
 		glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
 
@@ -165,7 +168,7 @@ void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
 		GLint uniformModelviewProjection = glGetUniformLocation(shader->shaderProgram, "modelviewProjection");
 		GLfloat modelviewProjectionMatrix[16];
 	
-		pfnMatrixMult(view->projectionMatrix, mesh->modelView, modelviewProjectionMatrix);
+		pufMatrixMult(view->projectionMatrix, mesh->modelView, modelviewProjectionMatrix);
 		glUniformMatrix4fv(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
 	
 		GLint uniformNormalMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewMatrix");
@@ -189,12 +192,12 @@ void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
 	
 	
-		glVertexAttribPointer(vertexPosition, 3, GL_FLOAT, 1, sizeof(PFNvertex), (void*)0);
-		glVertexAttribPointer(vertexColor, 3, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
-		glVertexAttribPointer(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
-		glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
-		glVertexAttribPointer(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
-		glVertexAttribPointer(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PFNvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
+		glVertexAttribPointer(vertexPosition, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0);
+		glVertexAttribPointer(vertexColor, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
+		glVertexAttribPointer(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
+		glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
+		glVertexAttribPointer(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
+		glVertexAttribPointer(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
 	
 		glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
 		
@@ -211,31 +214,41 @@ void pfnMeshDraw(PFNmesh* mesh, PFNview* view, PFNshader* shader)
 
 }
 
-void pfnMeshTranslate(PFNmesh* mesh, float X, float Y, float Z)
+void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z)
 {
-        GLfloat temp[16];
-        pfnMatrixMult(memcpy(temp,mesh->modelView,sizeof(GLfloat)*16),pfnMatrixTranslate(X,Y,Z),mesh->modelView);
-
+	//copy the existing mesh modelview matrix into tempModelView, ask for a new matrix for tempMatrix, then multiply them and put into mesh modelview
+	GLfloat tempModelView[16];
+	GLfloat tempMatrix[16];
+	pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixTranslate(X,Y,Z,tempMatrix),mesh->modelView);
 }
 
 
-void pfnMeshRotate(PFNmesh* mesh, float ang, float X, float Y, float Z, bool degrees)
+void pufMeshRotate(PUFmesh* mesh, float ang, float X, float Y, float Z, bool degrees)
 {
-    GLfloat temp[16];
-    pfnMatrixMult(memcpy(temp,mesh->modelView,sizeof(GLfloat)*16),pfnMatrixRotate(ang,X,Y,Z,degrees),mesh->modelView);
+    GLfloat tempModelView[16];
+	GLfloat tempMatrix[16];
+    pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixRotate(ang,X,Y,Z,degrees,tempMatrix),mesh->modelView);
 }
 
-void pfnMeshDestroy(PFNmesh* mesh)
+void pufMeshScale(PUFmesh* mesh, float X, float Y, float Z)
+{
+	GLfloat tempModelView[16];
+	GLfloat tempMatrix[16];
+    pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixScale(X,Y,Z,tempMatrix),mesh->modelView);
+}
+
+void pufMeshDestroy(PUFmesh* mesh)
 {
     free((void*)mesh->verts);
+	free(mesh);
 }
 
-void pfnShaderLoad(PFNshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
+void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
 {
 	if (puffin.glMajorVersion == 1)
 	{
 		GLuint vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER);
-		const GLchar* vertexShaderSource = readFile(vertexShaderSourceFile);
+		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
 		glShaderSourceARB(vertexShader,1,&vertexShaderSource,NULL);
 		glCompileShaderARB(vertexShader);
 		free((void*)vertexShaderSource);
@@ -243,7 +256,7 @@ void pfnShaderLoad(PFNshader* shader, char const* vertexShaderSourceFile, char c
 
 		GLuint fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
 
-		const GLchar* fragmentShaderSource = readFile(fragmentShaderSourceFile);
+		const GLchar* fragmentShaderSource = pufReadFile(fragmentShaderSourceFile);
 		glShaderSourceARB(fragmentShader,1,&fragmentShaderSource,NULL);
 		glCompileShaderARB(fragmentShader);
 		free((void*)fragmentShaderSource);
@@ -256,7 +269,7 @@ void pfnShaderLoad(PFNshader* shader, char const* vertexShaderSourceFile, char c
 	else 
 	{
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		const GLchar* vertexShaderSource = readFile(vertexShaderSourceFile);
+		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
 		glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
 		glCompileShader(vertexShader);
 		free((void*)vertexShaderSource);
@@ -264,7 +277,7 @@ void pfnShaderLoad(PFNshader* shader, char const* vertexShaderSourceFile, char c
 		
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		
-		const GLchar* fragmentShaderSource = readFile(fragmentShaderSourceFile);
+		const GLchar* fragmentShaderSource = pufReadFile(fragmentShaderSourceFile);
 		glShaderSource(fragmentShader,1,&fragmentShaderSource,NULL);
 		glCompileShader(fragmentShader);
 		free((void*)fragmentShaderSource);
@@ -277,15 +290,20 @@ void pfnShaderLoad(PFNshader* shader, char const* vertexShaderSourceFile, char c
 
 }
 
+void pufShaderDestroy(PUFshader* shader)
+{
+	free(shader);
+}
 
-void pfnTextureLoadBMP(PFNtexture* texture, char const* name)
+
+void pufTextureLoadBMP(PUFtexture* texture, char const* name)
 {
 SDL_Surface* surface;
 
 surface = SDL_LoadBMP(name);
 
-GLenum texture_format;
-GLint  nOfColors;
+//GLenum texture_format;
+//GLint  nOfColors;
 
 #ifdef PUFFIN_SQUAWK
 	printf("Loading image %s...\n", name);
@@ -299,31 +317,36 @@ GLint  nOfColors;
 	}
 #endif
 	
-		nOfColors = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
-        if (nOfColors == 4)     // contains an alpha channel
+		texture->colorCount = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
+        if (texture->colorCount == 4)     // contains an alpha channel
         {
                 if (surface->format->Rmask == 0x000000ff)
-                        texture_format = GL_RGBA;
+                        texture->textureFormat = GL_RGBA;
                 else
-                        texture_format = GL_BGRA;
+                        texture->textureFormat = GL_BGRA;
         } 
-		else if (nOfColors == 3)     // no alpha channel
+		else if (texture->colorCount == 3)     // no alpha channel
         {
                 if (surface->format->Rmask == 0x000000ff)
-                        texture_format = GL_RGB;
+                        texture->textureFormat = GL_RGB;
                 else
-                        texture_format = GL_BGR;
+                        texture->textureFormat = GL_BGR;
         } 
 		else 
 		{
                 printf("warning: %s is not truecolor\n",name);
         }
 
-glGenTextures(1,&(texture->texture));
-glBindTexture(GL_TEXTURE_2D, texture->texture);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-glTexImage2D(GL_TEXTURE_2D,0,nOfColors,surface->w,surface->h,0,texture_format,GL_UNSIGNED_BYTE,surface->pixels);
-if(surface)
-	SDL_FreeSurface(surface);
+
+	glGenBuffers(1, &texture->pixelBuffer);
+	
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, surface->w*surface->h*surface->format->BytesPerPixel, NULL,GL_STATIC_DRAW);
+	glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, surface->w*surface->h*surface->format->BytesPerPixel, surface->pixels);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D,0,texture->colorCount,surface->w,surface->h,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+	if(surface)
+		SDL_FreeSurface(surface);
 }

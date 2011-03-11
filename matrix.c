@@ -6,11 +6,11 @@
 #include <GL/glew.h>
 #endif
 
-GLfloat* pfnMatrixTranslate(float X, float Y, float Z)
+GLfloat* pufMatrixTranslate(float X, float Y, float Z, GLfloat* M)
 {
     //The returned pointer is to static data which is overwritten with each call
 
-    static GLfloat M[16];
+//    static GLfloat M[16];
 //
     M[0] = 1;M[4] = 0;M[8] = 0;M[12] = X;
     M[1] = 0;M[5] = 1;M[9] = 0;M[13] = Y;
@@ -20,7 +20,7 @@ GLfloat* pfnMatrixTranslate(float X, float Y, float Z)
     return M;
 }
 
-GLfloat* pfnMatrixRotate(float ang, float X, float Y, float Z, bool degrees)
+GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, bool degrees, GLfloat* M)
 {
 
     if (degrees) //ang given as degrees
@@ -40,8 +40,6 @@ GLfloat* pfnMatrixRotate(float ang, float X, float Y, float Z, bool degrees)
     {
         ang = 0;
     }
-
-    static GLfloat M[16];
 
     float c = cos(ang);
     float s = sin(ang);
@@ -69,10 +67,10 @@ GLfloat* pfnMatrixRotate(float ang, float X, float Y, float Z, bool degrees)
     return M;
 }
 
-GLfloat* pfnMatrixScale(float X, float Y, float Z)
+GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat* M)
 {
-    static GLfloat M[16] = {0};
-
+	memset(M, 0, sizeof(GLfloat)*16);
+	
     M[0] = X;
     M[5] = Y;
     M[10] = Z;
@@ -81,29 +79,41 @@ GLfloat* pfnMatrixScale(float X, float Y, float Z)
     return M;
 }
 
-GLfloat* pfnMatrixProject(float fov, float aspect, float zNear, float zFar, bool degrees)
+GLfloat* pufMatrixProject(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M)
 {
-    if (degrees) //fov given as degrees
+    if (degrees & fov != 0.0) //fov given as degrees
     {
             fov = fov * M_PI / 180.0f;
     }
-
+	
     GLfloat f = 1.0f/tan(fov/2.0f);
     GLfloat negDepth = zNear-zFar;
 
-    static GLfloat M[16] = {0};
+	memset(M, 0, sizeof(GLfloat)*16);
+    //static GLfloat M[16] = {0};
 
-    M[0] = f/aspect;
-    M[5] = f;
-    M[10] = (zFar + zNear)/negDepth;
-    M[11] = -1;
-    M[14] = (2.0f*zFar*zNear)/negDepth;
-
+	if (fov == 0.0)	 //fov zero for orthographic projection
+	{
+		M[0] = 1.0f/(width/2.0f);
+		M[5] = 1.0f/(height/2.0f);
+		M[10] = -2.0f/(zFar-zNear);
+		M[14] = -((zFar+zNear)/(zFar-zNear));
+		M[15] = 1.0f;
+	}
+	else
+	{
+		M[0] = f/(width/height);
+		M[5] = f;
+		M[10] = (zFar + zNear)/negDepth;
+		M[11] = -1;
+		M[14] = (2.0f*zFar*zNear)/negDepth;
+	}
+	
     return M;
 }
 
 
-GLfloat* pfnMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
+GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
 {
     for (int i=0; i<16; i+=4)
         for (int j=0; j<4; j++)
@@ -111,7 +121,7 @@ GLfloat* pfnMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
     return M;
 }
 
-GLfloat* pfnMatrixShrink(GLfloat* A,GLfloat* M)
+GLfloat* pufMatrixShrink(GLfloat* A,GLfloat* M)
 {
     for (int i=0; i<3; i++)
         for (int j=0; j<3; j++)

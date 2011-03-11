@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-char* readFile(char const* name)
+char* pufReadFile(char const* name)
 {
   FILE* f;
   int len;

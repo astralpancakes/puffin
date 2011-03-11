@@ -17,58 +17,65 @@ typedef struct
     GLfloat meta3f[3];
     GLfloat meta1f;
 }
-PFNvertex;
+PUFvertex;
 
 
 typedef struct
 {
-    PFNvertex* verts;
+    PUFvertex* verts;
     int vertexCount;
     GLuint vertexBuffer;
     GLfloat modelView[16];
     // shader
     // asdf
 }
-PFNmesh;
+PUFmesh;
 
 typedef struct
 {
     GLuint shaderProgram;
 }
-PFNshader;
+PUFshader;
 
 typedef struct
 {
     GLuint texture;
+	GLenum textureFormat;
+	GLint  colorCount;
+	GLuint pixelBuffer;
 }
-PFNtexture;
+PUFtexture;
 
 typedef struct
 {
-    GLfloat* projectionMatrix;
+    GLfloat projectionMatrix[16];
     int width;
     int height;
+	float nearClip;
+	float farClip;
 }
-PFNview;
+PUFview;
 
-void pfnInit(int, int);
+void pufInit(int, int);
 
-void pfnWindowResize(int, int);
+void pufWindowResize(int, int);
 
-void pfnViewInit(PFNview*, float);
+void pufViewInit(PUFview*, float, float, float);
 
-void pfnMeshInit(PFNmesh*);
-void pfnMeshLoadOBJ(PFNmesh*, char const*);
-void pfnMeshBind(PFNmesh*);
-void pfnMeshDraw(PFNmesh*, PFNview*, PFNshader*);
+void pufMeshInit(PUFmesh*);
+void pufMeshLoadOBJ(PUFmesh*, char const*);
+void pufMeshBind(PUFmesh*);
+void pufMeshDraw(PUFmesh*, PUFview*, PUFshader*);
 
-void pfnMeshTranslate(PFNmesh*, float, float, float);
-void pfnMeshRotate(PFNmesh*, float, float, float, float, bool);
+void pufMeshTranslate(PUFmesh*, float, float, float);
+void pufMeshRotate(PUFmesh*, float, float, float, float, bool);
+void pufMeshScale(PUFmesh*, float,float,float);
 
-void pfnMeshDestroy(PFNmesh*);
+void pufMeshDestroy(PUFmesh*);
 
-void pfnShaderLoad(PFNshader*,char const*,char const*);
+void pufShaderLoad(PUFshader*,char const*,char const*);
+void pufShaderDestroy(PUFshader*);
 
-void pfnTextureLoadBMP(PFNtexture*, char const*);
+void pufTextureLoadBMP(PUFtexture*, char const*);
 
 #endif

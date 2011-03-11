@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #endif
 
-GLfloat* loadOBJ(char const* name,int* vertexCount)
+GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
 {
     FILE* f;
 

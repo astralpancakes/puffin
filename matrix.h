@@ -1,18 +1,18 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-GLfloat* pfnMatrixTranslate(float, float, float);
+GLfloat* pufMatrixTranslate(float, float, float, GLfloat*);
 
-GLfloat* pfnMatrixRotate(float ang, float X, float Y, float Z, bool degrees);
+GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, bool degrees, GLfloat*);
 
-GLfloat* pfnMatrixScale(float X, float Y, float Z);
-
-
-GLfloat* pfnMatrixProject(float fov, float aspect, float zNear, float zFar, bool degrees);
+GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat*);
 
 
-GLfloat* pfnMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M);
+GLfloat* pufMatrixProject(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M);
 
-GLfloat* pfnMatrixShrink(GLfloat* A,GLfloat* M);
+
+GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M);
+
+GLfloat* pufMatrixShrink(GLfloat* A,GLfloat* M);
 
 #endif
