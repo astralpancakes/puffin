@@ -68,6 +68,63 @@ void pufMeshInit(PUFmesh* mesh) // zero the modelview matrix of the mesh
     mesh->modelView[15] = 1.0f;
 }
 
+void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
+{
+	mesh->vertexCount = 6;
+	mesh->verts = (GLfloat*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
+	mesh->verts[0].position[0] = -1.0f;
+	mesh->verts[0].position[1] = 1.0f;
+	mesh->verts[0].position[2] = 0.0f;
+	mesh->verts[0].texture[0] = 0.0f;
+	mesh->verts[0].texture[1] = 1.0f;
+	mesh->verts[0].texture[2] = 0.0f;
+	
+	mesh->verts[1].position[0] = -1.0f;
+	mesh->verts[1].position[1] = -1.0f;
+	mesh->verts[1].position[2] = 0.0f;
+	mesh->verts[1].texture[0] = 0.0f;
+	mesh->verts[1].texture[1] = 0.0f;
+	mesh->verts[1].texture[2] = 0.0f;
+	
+	mesh->verts[2].position[0] = 1.0f;
+	mesh->verts[2].position[1] = -1.0f;
+	mesh->verts[2].position[2] = 0.0f;
+	mesh->verts[2].texture[0] = 1.0f;
+	mesh->verts[2].texture[1] = 0.0f;
+	mesh->verts[2].texture[2] = 0.0f;
+	
+	mesh->verts[3].position[0] = -1.0f;
+	mesh->verts[3].position[1] = 1.0f;
+	mesh->verts[3].position[2] = 0.0f;
+	mesh->verts[3].texture[0] = 0.0f;
+	mesh->verts[3].texture[1] = 1.0f;
+	mesh->verts[3].texture[2] = 0.0f;
+	
+	mesh->verts[4].position[0] = 1.0f;
+	mesh->verts[4].position[1] = -1.0f;
+	mesh->verts[4].position[2] = 0.0f;
+	mesh->verts[4].texture[0] = 1.0f;
+	mesh->verts[4].texture[1] = 0.0f;
+	mesh->verts[4].texture[2] = 0.0f;
+	
+	mesh->verts[5].position[0] = 1.0f;
+	mesh->verts[5].position[1] = 1.0f;
+	mesh->verts[5].position[2] = 0.0f;
+	mesh->verts[5].texture[0] = 1.0f;
+	mesh->verts[5].texture[1] = 1.0f;
+	mesh->verts[5].texture[2] = 0.0f;
+	
+	for (int i=0;i<mesh->vertexCount;++i)
+	{
+		mesh->verts[i].color[0] = ((float)(rand() % 100))/100;
+        mesh->verts[i].color[1] = (float)(rand() % 100)/100;
+        mesh->verts[i].color[2] = (float)(rand() % 100)/100;
+        mesh->verts[i].normal[0] = 0.0f;
+        mesh->verts[i].normal[1] = 0.0f;
+        mesh->verts[i].normal[2] = 1.0f;
+	}
+}
+
 void pufMeshLoadOBJ(PUFmesh* mesh, char const* name)
 {
     GLfloat* obj = pufLoadOBJ(name, &mesh->vertexCount);
@@ -298,12 +355,9 @@ void pufShaderDestroy(PUFshader* shader)
 
 void pufTextureLoadBMP(PUFtexture* texture, char const* name)
 {
-SDL_Surface* surface;
 
+	SDL_Surface* surface;
 surface = SDL_LoadBMP(name);
-
-//GLenum texture_format;
-//GLint  nOfColors;
 
 #ifdef PUFFIN_SQUAWK
 	printf("Loading image %s...\n", name);
@@ -317,25 +371,25 @@ surface = SDL_LoadBMP(name);
 	}
 #endif
 	
-		texture->colorCount = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
-        if (texture->colorCount == 4)     // contains an alpha channel
-        {
-                if (surface->format->Rmask == 0x000000ff)
-                        texture->textureFormat = GL_RGBA;
-                else
-                        texture->textureFormat = GL_BGRA;
-        } 
-		else if (texture->colorCount == 3)     // no alpha channel
-        {
-                if (surface->format->Rmask == 0x000000ff)
-                        texture->textureFormat = GL_RGB;
-                else
-                        texture->textureFormat = GL_BGR;
-        } 
-		else 
-		{
-                printf("warning: %s is not truecolor\n",name);
-        }
+	texture->colorCount = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
+	if (texture->colorCount == 4)     // contains an alpha channel
+	{
+		if (surface->format->Rmask == 0x000000ff)
+			texture->textureFormat = GL_RGBA;
+		else
+			texture->textureFormat = GL_BGRA;
+	} 
+	else if (texture->colorCount == 3)     // no alpha channel
+	{
+		if (surface->format->Rmask == 0x000000ff)
+			texture->textureFormat = GL_RGB;
+		else
+			texture->textureFormat = GL_BGR;
+	} 
+	else 
+	{
+		printf("warning: %s is not truecolor\n",name);
+	}
 
 
 	glGenBuffers(1, &texture->pixelBuffer);

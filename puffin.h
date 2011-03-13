@@ -63,6 +63,7 @@ void pufWindowResize(int, int);
 void pufViewInit(PUFview*, float, float, float);
 
 void pufMeshInit(PUFmesh*);
+void pufMeshShapeQuad(PUFmesh*);
 void pufMeshLoadOBJ(PUFmesh*, char const*);
 void pufMeshBind(PUFmesh*);
 void pufMeshDraw(PUFmesh*, PUFview*, PUFshader*);
