@@ -14,36 +14,91 @@
 
 //globals
 
-struct {
-	int windowHeight;
-	int windowWidth;
-	SDL_Surface* windowSurface;
+static struct {
+	unsigned int windowHeight;
+	unsigned int windowWidth;
+    unsigned int frameRate;
+    SDL_Surface* windowSurface;
 	int glMajorVersion;
 	int glMinorVersion;
+    Uint32 frameCounter;
+    unsigned long frameTick; 
+    unsigned long frameDelay;
 } puffin;
 
-void pufInit(int width, int height)
+
+
+void pufInit(int width, int height, int framerate)
 {
 	if (height == 0)	// prevent divide by zero etc
         height = 1;
-	puffin.windowWidth = width;
-	puffin.windowHeight = height;
+    puffin.windowHeight = height;
+    puffin.windowWidth = width;
 	SDL_Init(SDL_INIT_EVERYTHING);
-	puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
-	glewInit();
+    puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
+	puffin.frameRate = framerate;
+    glewInit();
 
-	//get OpenGL version
-	
+	//get OpenGL vPUFglobals
 	puffin.glMajorVersion = atoi(&glGetString(GL_VERSION)[0]);
-	puffin.glMinorVersion = atoi(&glGetString(GL_VERSION)[2]);
+	puffin.glMajorVersion = atoi(&glGetString(GL_VERSION)[2]); 
+    puffin.frameCounter = 0;
+    puffin.frameDelay = 0;    
+    puffin.frameTick = 0;
+    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+    
+   
+    
 }
 
 void pufWindowResize(int width, int height)
 {
+    puffin.windowWidth = width;
+    puffin.windowHeight = height;
     puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
 }
 
-void pufViewInit(PUFview* view, float fov, float nearClip, float farClip)
+void pufUpdate()
+{
+    SDL_GL_SwapBuffers();
+    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+    
+    if (puffin.frameRate > 0)
+    {
+        if (puffin.frameTick == 0)
+        {
+            puffin.frameTick = SDL_GetTicks();
+        }
+    
+
+        int delay = puffin.frameTick + (1000/puffin.frameRate) - SDL_GetTicks();
+    
+        if(delay > 0) 
+            SDL_Delay(delay);
+        puffin.frameTick = SDL_GetTicks();
+    }
+    ++puffin.frameCounter;
+    
+     
+}
+
+float pufGetStats(int type)
+{
+    float returnValue;
+    switch (type)
+    {
+        case 0:
+            returnValue = (float)SDL_GetTicks()/1000;
+            break;
+        case 1:
+            returnValue = (puffin.frameCounter*1000.0f)/(SDL_GetTicks());
+            break;
+    }
+    
+    return returnValue;
+}
+
+void pufCameraInit(PUFcamera* view, float fov, float nearClip, float farClip)
 {
     view->width = puffin.windowWidth;
     view->height = puffin.windowHeight;
@@ -53,11 +108,35 @@ void pufViewInit(PUFview* view, float fov, float nearClip, float farClip)
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    pufMatrixProject(fov, view->width, view->height, nearClip, farClip,true, view->projectionMatrix);	
+    pufMatrixProject(fov, view->width, view->height, nearClip, farClip,true, view->projectionMatrix);
+    
+    for (int i=0;i < 15; i++)
+		view->cameraMatrix[i] = 0.0f;
+    
+    view->cameraMatrix[0] = 1.0f;
+    view->cameraMatrix[5] = 1.0f;
+    view->cameraMatrix[10] = 1.0f;
+    view->cameraMatrix[15] = 1.0f;
 }
 
-void pufMeshInit(PUFmesh* mesh) // zero the modelview matrix of the mesh
+void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z)
+{
+	GLfloat tempCameraMatrix[16];
+	GLfloat tempMatrix[16];
+	pufMatrixMult(memcpy(tempCameraMatrix,camera->cameraMatrix,sizeof(GLfloat)*16),pufMatrixTranslate(-X,-Y,-Z,tempMatrix),camera->cameraMatrix);
+}
+
+void pufCameraRotate(PUFcamera* camera, float ang, float X, float Y, float Z, bool degrees)
+{
+    GLfloat tempCameraMatrix[16];
+	GLfloat tempMatrix[16];
+    pufMatrixMult(memcpy(tempCameraMatrix,camera->cameraMatrix,sizeof(GLfloat)*16),pufMatrixRotate(ang,-X,-Y,-Z,degrees,tempMatrix),camera->cameraMatrix);
+}
+
+void pufMeshInit(PUFmesh* mesh) //zero the modelview matrix of the mesh
 {
     for (int i=0;i < 15; i++)
 		mesh->modelView[i] = 0.0f;
@@ -71,7 +150,7 @@ void pufMeshInit(PUFmesh* mesh) // zero the modelview matrix of the mesh
 void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
 {
 	mesh->vertexCount = 6;
-	mesh->verts = (GLfloat*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
+	mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
 	mesh->verts[0].position[0] = -1.0f;
 	mesh->verts[0].position[1] = 1.0f;
 	mesh->verts[0].position[2] = 0.0f;
@@ -125,10 +204,10 @@ void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
 	}
 }
 
-void pufMeshLoadOBJ(PUFmesh* mesh, char const* name)
+void pufMeshLoadOBJ(PUFmesh* mesh, char const* name) //loads an OBJ file into Puffin mesh
 {
     GLfloat* obj = pufLoadOBJ(name, &mesh->vertexCount);
-    mesh->verts = (GLfloat*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
+    mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
 
     for (int i=0;i<mesh->vertexCount;++i)
     {
@@ -148,84 +227,24 @@ void pufMeshLoadOBJ(PUFmesh* mesh, char const* name)
     free((void*)obj);
 }
 
-void pufMeshBind(PUFmesh* mesh)
+void pufMeshBind(PUFmesh* mesh) //uploads Puffin mesh vertex buffer object
 {
-	if (puffin.glMajorVersion == 1)
-	{
-		glGenBuffersARB(1, &mesh->vertexBuffer);
-		glBindBufferARB(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-		glBufferDataARB(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
-		glBufferSubDataARB(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);
-	}
-	else {
 		glGenBuffers(1, &mesh->vertexBuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);
-	}
-
-	
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
 }
 
-void pufMeshDraw(PUFmesh* mesh, PUFview* view, PUFshader* shader)
+void pufMeshDraw(PUFmesh* mesh, PUFcamera* view, PUFshader* shader) //draws Puffin mesh
 {
-	if (puffin.glMajorVersion == 1)
-	{
-		glUseProgramObjectARB(shader->shaderProgram);
 	
-		GLint uniformModelviewProjection = glGetUniformLocationARB(shader->shaderProgram, "modelviewProjection");
-		GLfloat modelviewProjectionMatrix[16];
-	
-		pufMatrixMult(view->projectionMatrix, mesh->modelView, modelviewProjectionMatrix);
-		glUniformMatrix4fvARB(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
-
-		GLint uniformNormalMatrix = glGetUniformLocationARB(shader->shaderProgram, "modelviewMatrix");
-		glUniformMatrix4fvARB(uniformNormalMatrix, 1, GL_FALSE, mesh->modelView);
-
-		GLint vertexPosition = glGetAttribLocationARB(shader->shaderProgram, "vertexPosition");
-		GLint vertexColor = glGetAttribLocationARB(shader->shaderProgram, "vertexColor");
-		GLint vertexTexture = glGetAttribLocationARB(shader->shaderProgram, "vertexTexture");
-		GLint vertexNormal = glGetAttribLocationARB(shader->shaderProgram, "vertexNormal");
-		GLint vertexMeta3f = glGetAttribLocationARB(shader->shaderProgram, "inMeta3f");
-		GLint vertexMeta1f = glGetAttribLocationARB(shader->shaderProgram, "inMeta1f");
-
-		glEnableVertexAttribArrayARB(vertexPosition);
-		glEnableVertexAttribArrayARB(vertexColor);
-		glEnableVertexAttribArrayARB(vertexTexture);
-		glEnableVertexAttribArrayARB(vertexNormal);
-		glEnableVertexAttribArrayARB(vertexMeta3f);
-		glEnableVertexAttribArrayARB(vertexMeta1f);
-
-
-		glBindBufferARB(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-
-
-		glVertexAttribPointerARB(vertexPosition, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0);
-		glVertexAttribPointerARB(vertexColor, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
-		glVertexAttribPointerARB(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
-		glVertexAttribPointerARB(vertexNormal, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
-		glVertexAttribPointerARB(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
-		glVertexAttribPointerARB(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
-
-		glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
-
-		glBindBufferARB(GL_ARRAY_BUFFER, 0);
-
-		glDisableVertexAttribArrayARB(vertexMeta1f);
-		glDisableVertexAttribArrayARB(vertexMeta3f);
-		glDisableVertexAttribArrayARB(vertexNormal);
-		glDisableVertexAttribArrayARB(vertexTexture);
-		glDisableVertexAttribArrayARB(vertexColor);
-		glDisableVertexAttribArrayARB(vertexPosition);
-		glUseProgramObjectARB(0);
-	}
-	else 
-	{
 		glUseProgram(shader->shaderProgram);
 		GLint uniformModelviewProjection = glGetUniformLocation(shader->shaderProgram, "modelviewProjection");
 		GLfloat modelviewProjectionMatrix[16];
-	
-		pufMatrixMult(view->projectionMatrix, mesh->modelView, modelviewProjectionMatrix);
+        GLfloat modelviewCameraMatrix[16];
+        
+        pufMatrixMult(view->cameraMatrix, mesh->modelView, modelviewCameraMatrix);
+		pufMatrixMult(view->projectionMatrix, modelviewCameraMatrix, modelviewProjectionMatrix);
 		glUniformMatrix4fv(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
 	
 		GLint uniformNormalMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewMatrix");
@@ -267,11 +286,11 @@ void pufMeshDraw(PUFmesh* mesh, PUFview* view, PUFshader* shader)
 		glDisableVertexAttribArray(vertexColor);
 		glDisableVertexAttribArray(vertexPosition);
 		glUseProgram(0);
-	}
+	
 
 }
 
-void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z)
+void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z) //translates Puffin mesh
 {
 	//copy the existing mesh modelview matrix into tempModelView, ask for a new matrix for tempMatrix, then multiply them and put into mesh modelview
 	GLfloat tempModelView[16];
@@ -279,52 +298,28 @@ void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z)
 	pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixTranslate(X,Y,Z,tempMatrix),mesh->modelView);
 }
 
-
-void pufMeshRotate(PUFmesh* mesh, float ang, float X, float Y, float Z, bool degrees)
+void pufMeshRotate(PUFmesh* mesh, float ang, float X, float Y, float Z, bool degrees) //rotates Puffin mesh
 {
     GLfloat tempModelView[16];
 	GLfloat tempMatrix[16];
     pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixRotate(ang,X,Y,Z,degrees,tempMatrix),mesh->modelView);
 }
 
-void pufMeshScale(PUFmesh* mesh, float X, float Y, float Z)
+void pufMeshScale(PUFmesh* mesh, float X, float Y, float Z) //scales Puffin mesh
 {
 	GLfloat tempModelView[16];
 	GLfloat tempMatrix[16];
     pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixScale(X,Y,Z,tempMatrix),mesh->modelView);
 }
 
-void pufMeshDestroy(PUFmesh* mesh)
+void pufMeshDestroy(PUFmesh* mesh) //deletes Puffin mesh
 {
     free((void*)mesh->verts);
-	free(mesh);
 }
 
-void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
+void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile) //loads shader from GLSL source files, compiles and links shader program
 {
-	if (puffin.glMajorVersion == 1)
-	{
-		GLuint vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER);
-		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
-		glShaderSourceARB(vertexShader,1,&vertexShaderSource,NULL);
-		glCompileShaderARB(vertexShader);
-		free((void*)vertexShaderSource);
 
-
-		GLuint fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
-
-		const GLchar* fragmentShaderSource = pufReadFile(fragmentShaderSourceFile);
-		glShaderSourceARB(fragmentShader,1,&fragmentShaderSource,NULL);
-		glCompileShaderARB(fragmentShader);
-		free((void*)fragmentShaderSource);
-
-		shader->shaderProgram = glCreateProgramObjectARB();
-		glAttachObjectARB(shader->shaderProgram,vertexShader);
-		glAttachObjectARB(shader->shaderProgram,fragmentShader);
-		glLinkProgramARB(shader->shaderProgram);
-	}
-	else 
-	{
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
 		glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
@@ -343,17 +338,123 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 		glAttachShader(shader->shaderProgram,vertexShader);
 		glAttachShader(shader->shaderProgram,fragmentShader);
 		glLinkProgram(shader->shaderProgram);
-	}
+	
 
-}
+} 
 
-void pufShaderDestroy(PUFshader* shader)
+void pufTextureLoadBMP(PUFtexture* texture, char const* name) //loads BMP file into Puffin texture, binds the pixel buffer object and loads into OpenGL texture map
 {
-	free(shader);
+    glGenTextures(1, &texture->textureId);
+    
+    
+    FILE* img = NULL;
+    if ((img = fopen(name,"r")))
+    {
+        int pixelDataStartingOffset;
+        int pixelBits;
+        fseek(img,10,SEEK_SET);
+        fread(&pixelDataStartingOffset,4,1,img);
+        fseek(img,4,SEEK_CUR);
+        fread(&texture->width,4,1,img);
+        fread(&texture->height,4,1,img);
+        fseek(img,2,SEEK_CUR);
+        fread(&pixelBits,2,1,img);
+        texture->pixelBytes = pixelBits/8;
+
+#ifdef PUFFIN_SQUAWK
+        printf("Puffin BMP loader opened file %s\n",name);
+        printf("Pixel data start offset is %i...\n", pixelDataStartingOffset);
+        printf("Width is %lu...\n", texture->width);
+        printf("Height is %lu...\n", texture->height);
+        printf("Number of bits per pixel is %i...\n", pixelBits);
+        printf("Number of bytes per pixel is %i...\n", texture->pixelBytes);
+        printf("Allocating memory for %lu pixels of %i bytes each...\n",texture->height*texture->width, texture->pixelBytes);
+#endif
+        
+        texture->pixels = (GLchar*)malloc(texture->height*texture->width*texture->pixelBytes);
+        
+        fseek(img,pixelDataStartingOffset,SEEK_SET);	// start reading image data
+        for(int i = 0;i<texture->height;i++) // for each row...
+        {
+            for(int j = 0;j<texture->width;j++) // for each pixel...
+                fread(texture->pixels+(i*texture->width*texture->pixelBytes+j*texture->pixelBytes),texture->pixelBytes,1,img); // read it...
+            if ((texture->width*texture->pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
+                fseek(img,4 - ((texture->width*texture->pixelBytes) % 4), SEEK_CUR);
+        }
+        fclose(img);
+    }
+    else // failed to open file, let's make the texture solid white instead
+    {
+        printf("Puffin BMP loader failed to open file %s\n",name);
+        texture->width = 1;
+        texture->height = 1;
+        texture->pixelBytes = 4;
+        texture->pixels = (GLchar*)malloc(texture->height*texture->width*texture->pixelBytes);
+        for (int i = 0;i<texture->pixelBytes;i++)
+            texture->pixels[i] = 255;
+    }
+
+    if (texture->pixelBytes == 4)  // this will be wrong on big-endian, but whatever...
+        texture->textureFormat = GL_BGRA;
+    else if (texture->pixelBytes == 3)
+        texture->textureFormat = GL_BGR;
+    else
+        printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.", name);
+    
+    
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);    
+    glGenBuffers(1, &texture->pixelBuffer);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes, NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes, texture->pixels);
+        
+    
+
+    glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
 }
 
+void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height) //creates blank Puffin texture of specified size
+{
+    texture->pixelBytes = 4;
+    texture->textureFormat = GL_RGBA;
+    texture->width = width;
+    texture->height = height;
+    
+    texture->pixels = (GLchar*)malloc(texture->width*texture->height*texture->pixelBytes);
+    
+    glGenBuffers(1, &texture->pixelBuffer);
 
-void pufTextureLoadBMP(PUFtexture* texture, char const* name)
+    glGenTextures(1, &texture->textureId);
+    glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+}
+
+void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
+{
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes, NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes, texture->pixels);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
+    glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+}
+
+void pufTextureBind(PUFtexture* texture) //binds Puffin texture for use
+{
+    glBindTexture(GL_TEXTURE_2D, texture->textureId);
+}
+
+void pufTextureDestroy(PUFtexture* texture) //deletes Puffin texture
+{
+    free((void*)texture->pixels);
+}
+
+void pufTextureOldLoadBMP(PUFtexture* texture, char const* name)
 {
 
 	SDL_Surface* surface;
@@ -371,15 +472,15 @@ surface = SDL_LoadBMP(name);
 	}
 #endif
 	
-	texture->colorCount = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
-	if (texture->colorCount == 4)     // contains an alpha channel
+	texture->pixelBytes = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
+	if (texture->pixelBytes == 4)     // contains an alpha channel
 	{
 		if (surface->format->Rmask == 0x000000ff)
 			texture->textureFormat = GL_RGBA;
 		else
 			texture->textureFormat = GL_BGRA;
 	} 
-	else if (texture->colorCount == 3)     // no alpha channel
+	else if (texture->pixelBytes == 3)     // no alpha channel
 	{
 		if (surface->format->Rmask == 0x000000ff)
 			texture->textureFormat = GL_RGB;
@@ -400,7 +501,7 @@ surface = SDL_LoadBMP(name);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D,0,texture->colorCount,surface->w,surface->h,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+	glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,surface->w,surface->h,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
 	if(surface)
 		SDL_FreeSurface(surface);
 }

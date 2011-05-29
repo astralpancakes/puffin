@@ -10,16 +10,14 @@
 GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
 {
     FILE* f;
-
     int vertexCounter = 0;
-#ifdef PUFFIN_SQUAWK
-    printf("\n%s\n","OBJ Loader:");
-#endif
-    if(f = fopen(name, "r")) //file opened successfully
+    
+    if((f = fopen(name, "r"))) //file opened successfully
     {
-#ifdef PUFFIN_SQUAWK
-        printf("Parsing mesh %s...\n", name);
-#endif
+        #ifdef PUFFIN_SQUAWK
+        printf("Puffin OBJ loader loading file %s...\n", name);
+        #endif
+        
         int a,b,c;  //temporary variables for scanf
         float f1,f2,f3;
         int d1,d2,d3,d4,d5,d6,d7,d8,d9;
@@ -387,7 +385,7 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
     }
     else
     {
-        printf("Failed to open mesh %s...\n",name);
+        printf("Puffin OBJ loader failed to open file %s...\n",name);
         return NULL;
     }
 

@@ -26,8 +26,6 @@ typedef struct
     int vertexCount;
     GLuint vertexBuffer;
     GLfloat modelView[16];
-    // shader
-    // asdf
 }
 PUFmesh;
 
@@ -39,34 +37,46 @@ PUFshader;
 
 typedef struct
 {
-    GLuint texture;
-	GLenum textureFormat;
-	GLint  colorCount;
-	GLuint pixelBuffer;
+    GLuint textureId;
+    //GLenum textureUnit;
+    GLulong width;
+    GLulong height;
+    GLint  pixelBytes;    
+    GLuint pixelBuffer;
+    GLchar* pixels;
+    GLenum textureFormat;
+
 }
 PUFtexture;
 
 typedef struct
 {
     GLfloat projectionMatrix[16];
+    GLfloat cameraMatrix[16];
     int width;
     int height;
 	float nearClip;
 	float farClip;
 }
-PUFview;
+PUFcamera;
 
-void pufInit(int, int);
+void pufInit(int, int, int);
+void pufUpdate();
+
+float pufGetStats(int);
 
 void pufWindowResize(int, int);
 
-void pufViewInit(PUFview*, float, float, float);
+
+void pufCameraInit(PUFcamera*, float, float, float);
+void pufCameraTranslate(PUFcamera*, float, float, float);
+void pufCameraRotate(PUFcamera*, float, float, float, float, bool);
 
 void pufMeshInit(PUFmesh*);
 void pufMeshShapeQuad(PUFmesh*);
 void pufMeshLoadOBJ(PUFmesh*, char const*);
 void pufMeshBind(PUFmesh*);
-void pufMeshDraw(PUFmesh*, PUFview*, PUFshader*);
+void pufMeshDraw(PUFmesh*, PUFcamera*, PUFshader*);
 
 void pufMeshTranslate(PUFmesh*, float, float, float);
 void pufMeshRotate(PUFmesh*, float, float, float, float, bool);
@@ -75,8 +85,13 @@ void pufMeshScale(PUFmesh*, float,float,float);
 void pufMeshDestroy(PUFmesh*);
 
 void pufShaderLoad(PUFshader*,char const*,char const*);
-void pufShaderDestroy(PUFshader*);
 
 void pufTextureLoadBMP(PUFtexture*, char const*);
+void pufTextureOldLoadBMP(PUFtexture*, char const*);
+void pufTextureCreateRGBA(PUFtexture*, GLulong, GLulong);
+void pufTextureUpdate(PUFtexture*);
+void pufTextureBind(PUFtexture*);
+
+void pufTextureDestroy(PUFtexture*);
 
 #endif
