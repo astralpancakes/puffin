@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <string.h>
 #include <math.h>
 #ifdef PUFFIN_GLEWDOTFRAMEWORK
 #include <GLEW/glew.h>
@@ -77,7 +78,7 @@ GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat* M)
 
 GLfloat* pufMatrixProject(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M)
 {
-    if (degrees & fov != 0.0) //fov given as degrees
+    if ((degrees) & (fov != 0.0)) //fov given as degrees
     {
             fov = fov * M_PI / 180.0f;
     }
