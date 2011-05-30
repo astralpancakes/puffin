@@ -28,14 +28,14 @@ static struct {
 
 
 
-void pufInit(int width, int height, int framerate)
+void pufInit(int windowWidth, int windowHeight, int framerate)
 {
-	if (height == 0)	// prevent divide by zero etc
-        height = 1;
-    puffin.windowHeight = height;
-    puffin.windowWidth = width;
+	if (windowHeight == 0)	// prevent divide by zero etc
+        windowHeight = 1;
+    puffin.windowHeight = windowHeight;
+    puffin.windowWidth = windowWidth;
 	SDL_Init(SDL_INIT_EVERYTHING);
-    puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
+    puffin.windowSurface = SDL_SetVideoMode(puffin.windowWidth,puffin.windowHeight,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
 	puffin.frameRate = framerate;
     glewInit();
 
@@ -51,11 +51,11 @@ void pufInit(int width, int height, int framerate)
     
 }
 
-void pufWindowResize(int width, int height)
+void pufWindowResize(int windowWidth, int windowHeight)
 {
-    puffin.windowWidth = width;
-    puffin.windowHeight = height;
-    puffin.windowSurface = SDL_SetVideoMode(width,height,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
+    puffin.windowWidth = windowWidth;
+    puffin.windowHeight = windowHeight;
+    puffin.windowSurface = SDL_SetVideoMode(puffin.windowWidth,puffin.windowHeight,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
 }
 
 void pufUpdate()
@@ -98,11 +98,11 @@ float pufGetStats(int type)
     return returnValue;
 }
 
-void pufCameraInit(PUFcamera* view, float fov, float nearClip, float farClip)
+void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
 {
-    view->width = puffin.windowWidth;
-    view->height = puffin.windowHeight;
-    glViewport(0,0, view->width,view->height);
+    camera->width = puffin.windowWidth;
+    camera->height = puffin.windowHeight;
+    glViewport(0,0, camera->width,camera->height);
 	glShadeModel(GL_SMOOTH);
     glClearColor(0.0f,0.0f,0.0f,0.0f);
     glClearDepth(1.0f);
@@ -111,15 +111,15 @@ void pufCameraInit(PUFcamera* view, float fov, float nearClip, float farClip)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    pufMatrixProject(fov, view->width, view->height, nearClip, farClip,true, view->projectionMatrix);
+    pufMatrixProject(fov, camera->width, camera->height, nearClip, farClip,true, camera->projectionMatrix);
     
     for (int i=0;i < 15; i++)
-		view->cameraMatrix[i] = 0.0f;
+		camera->cameraMatrix[i] = 0.0f;
     
-    view->cameraMatrix[0] = 1.0f;
-    view->cameraMatrix[5] = 1.0f;
-    view->cameraMatrix[10] = 1.0f;
-    view->cameraMatrix[15] = 1.0f;
+    camera->cameraMatrix[0] = 1.0f;
+    camera->cameraMatrix[5] = 1.0f;
+    camera->cameraMatrix[10] = 1.0f;
+    camera->cameraMatrix[15] = 1.0f;
 }
 
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z)
@@ -204,9 +204,9 @@ void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
 	}
 }
 
-void pufMeshLoadOBJ(PUFmesh* mesh, char const* name) //loads an OBJ file into Puffin mesh
+void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) //loads an OBJ file into Puffin mesh
 {
-    GLfloat* obj = pufLoadOBJ(name, &mesh->vertexCount);
+    GLfloat* obj = pufLoadOBJ(file, &mesh->vertexCount);
     mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
 
     for (int i=0;i<mesh->vertexCount;++i)
@@ -235,7 +235,7 @@ void pufMeshBind(PUFmesh* mesh) //uploads Puffin mesh vertex buffer object
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
 }
 
-void pufMeshDraw(PUFmesh* mesh, PUFcamera* view, PUFshader* shader) //draws Puffin mesh
+void pufMeshDraw(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws Puffin mesh
 {
 	
 		glUseProgram(shader->shaderProgram);
@@ -243,8 +243,8 @@ void pufMeshDraw(PUFmesh* mesh, PUFcamera* view, PUFshader* shader) //draws Puff
 		GLfloat modelviewProjectionMatrix[16];
         GLfloat modelviewCameraMatrix[16];
         
-        pufMatrixMult(view->cameraMatrix, mesh->modelView, modelviewCameraMatrix);
-		pufMatrixMult(view->projectionMatrix, modelviewCameraMatrix, modelviewProjectionMatrix);
+        pufMatrixMult(camera->cameraMatrix, mesh->modelView, modelviewCameraMatrix);
+		pufMatrixMult(camera->projectionMatrix, modelviewCameraMatrix, modelviewProjectionMatrix);
 		glUniformMatrix4fv(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
 	
 		GLint uniformNormalMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewMatrix");
@@ -342,13 +342,13 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 
 } 
 
-void pufTextureLoadBMP(PUFtexture* texture, char const* name) //loads BMP file into Puffin texture, binds the pixel buffer object and loads into OpenGL texture map
+void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file into Puffin texture, binds the pixel buffer object and loads into OpenGL texture map
 {
     glGenTextures(1, &texture->textureId);
     
     
     FILE* img = NULL;
-    if ((img = fopen(name,"r")))
+    if ((img = fopen(file,"r")))
     {
         int pixelDataStartingOffset;
         int pixelBits;
@@ -385,7 +385,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* name) //loads BMP file i
     }
     else // failed to open file, let's make the texture solid white instead
     {
-        printf("Puffin BMP loader failed to open file %s\n",name);
+        printf("Puffin BMP loader failed to open file %s\n",file);
         texture->width = 1;
         texture->height = 1;
         texture->pixelBytes = 4;
@@ -399,7 +399,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* name) //loads BMP file i
     else if (texture->pixelBytes == 3)
         texture->textureFormat = GL_BGR;
     else
-        printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.", name);
+        printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.", file);
     
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);    

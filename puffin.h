@@ -60,38 +60,57 @@ typedef struct
 }
 PUFcamera;
 
-void pufInit(int, int, int);
+typedef struct
+{
+    float time;
+    float value;
+    
+    float handle1time;
+    float handle1value;
+    float handle2time;
+    float handle2value;
+}
+PUFkeyframe;
+
+typedef struct
+{
+    PUFkeyframe* keys;
+    int keyCount;
+}
+PUFanimation;
+
+
+void pufInit(int windowWidth, int windowHeight, int framerate);
 void pufUpdate();
 
-float pufGetStats(int);
+float pufGetStats(int type);
 
-void pufWindowResize(int, int);
+void pufWindowResize(int windowWidth, int windowHeight);
 
+void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip);
+void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z);
+void pufCameraRotate(PUFcamera* camera, float angle, float X, float Y, float Z, bool degrees);
 
-void pufCameraInit(PUFcamera*, float, float, float);
-void pufCameraTranslate(PUFcamera*, float, float, float);
-void pufCameraRotate(PUFcamera*, float, float, float, float, bool);
+void pufMeshInit(PUFmesh* mesh);
+void pufMeshShapeQuad(PUFmesh* mesh);
+void pufMeshLoadOBJ(PUFmesh* mesh, char const* file);
+void pufMeshBind(PUFmesh* mesh);
+void pufMeshDraw(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader);
 
-void pufMeshInit(PUFmesh*);
-void pufMeshShapeQuad(PUFmesh*);
-void pufMeshLoadOBJ(PUFmesh*, char const*);
-void pufMeshBind(PUFmesh*);
-void pufMeshDraw(PUFmesh*, PUFcamera*, PUFshader*);
+void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z);
+void pufMeshRotate(PUFmesh* mesh, float angle, float X, float Y, float Z, bool);
+void pufMeshScale(PUFmesh* mesh, float X,float Y,float Z);
 
-void pufMeshTranslate(PUFmesh*, float, float, float);
-void pufMeshRotate(PUFmesh*, float, float, float, float, bool);
-void pufMeshScale(PUFmesh*, float,float,float);
+void pufMeshDestroy(PUFmesh* mesh);
 
-void pufMeshDestroy(PUFmesh*);
+void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char const* fragmentShaderSourceFile);
 
-void pufShaderLoad(PUFshader*,char const*,char const*);
-
-void pufTextureLoadBMP(PUFtexture*, char const*);
+void pufTextureLoadBMP(PUFtexture* texture, char const* file);
 void pufTextureOldLoadBMP(PUFtexture*, char const*);
-void pufTextureCreateRGBA(PUFtexture*, GLulong, GLulong);
-void pufTextureUpdate(PUFtexture*);
-void pufTextureBind(PUFtexture*);
+void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height);
+void pufTextureUpdate(PUFtexture* texture);
+void pufTextureBind(PUFtexture* texture);
 
-void pufTextureDestroy(PUFtexture*);
+void pufTextureDestroy(PUFtexture* texture);
 
 #endif
