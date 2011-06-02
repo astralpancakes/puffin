@@ -434,6 +434,23 @@ void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height) //
 
 }
 
+void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height)
+{
+    texture->pixelBytes = 3;
+    texture->textureFormat = GL_RGB;
+    texture->width = width;
+    texture->height = height;
+    
+    texture->pixels = (GLchar*)malloc(texture->width*texture->height*texture->pixelBytes);
+    
+    glGenBuffers(1, &texture->pixelBuffer);
+    
+    glGenTextures(1, &texture->textureId);
+    glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
 void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);

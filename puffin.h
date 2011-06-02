@@ -108,6 +108,7 @@ void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char con
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
 void pufTextureOldLoadBMP(PUFtexture*, char const*);
 void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height);
+void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height);
 void pufTextureUpdate(PUFtexture* texture);
 void pufTextureBind(PUFtexture* texture);
 
