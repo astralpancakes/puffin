@@ -43,7 +43,7 @@ typedef struct
     GLulong height;
     GLint  pixelBytes;    
     GLuint pixelBuffer;
-    GLchar* pixels;
+    GLubyte* pixels;
     GLenum textureFormat;
 
 }

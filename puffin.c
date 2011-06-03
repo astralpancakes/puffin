@@ -371,7 +371,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         printf("Allocating memory for %lu pixels of %i bytes each...\n",texture->height*texture->width, texture->pixelBytes);
 #endif
         
-        texture->pixels = (GLchar*)malloc(texture->height*texture->width*texture->pixelBytes);
+        texture->pixels = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
         
         fseek(img,pixelDataStartingOffset,SEEK_SET);	// start reading image data
         for(int i = 0;i<texture->height;i++) // for each row...
@@ -389,7 +389,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         texture->width = 1;
         texture->height = 1;
         texture->pixelBytes = 4;
-        texture->pixels = (GLchar*)malloc(texture->height*texture->width*texture->pixelBytes);
+        texture->pixels = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
         for (int i = 0;i<texture->pixelBytes;i++)
             texture->pixels[i] = 255;
     }
@@ -424,7 +424,7 @@ void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height) //
     texture->width = width;
     texture->height = height;
     
-    texture->pixels = (GLchar*)malloc(texture->width*texture->height*texture->pixelBytes);
+    texture->pixels = (GLubyte*)malloc(texture->width*texture->height*texture->pixelBytes);
     
     glGenBuffers(1, &texture->pixelBuffer);
 
@@ -443,7 +443,7 @@ void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height)
     texture->width = width;
     texture->height = height;
     
-    texture->pixels = (GLchar*)malloc(texture->width*texture->height*texture->pixelBytes);
+    texture->pixels = (GLubyte*)malloc(texture->width*texture->height*texture->pixelBytes);
     
     glGenBuffers(1, &texture->pixelBuffer);
     
