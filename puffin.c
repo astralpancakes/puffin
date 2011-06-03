@@ -402,7 +402,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.", file);
     
     
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);    
+        
     glGenBuffers(1, &texture->pixelBuffer);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes, NULL,GL_STATIC_DRAW);
@@ -411,6 +411,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     
 
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
@@ -429,6 +430,7 @@ void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height) //
 
     glGenTextures(1, &texture->textureId);
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -447,8 +449,14 @@ void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height)
     
     glGenTextures(1, &texture->textureId);
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
+{
+    memset(texture->pixels, 0, texture->width*texture->height*texture->pixelBytes);
 }
 
 void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
@@ -456,8 +464,9 @@ void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes, NULL,GL_STATIC_DRAW);
     glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes, texture->pixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
+
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
     glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
 }
 

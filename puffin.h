@@ -109,6 +109,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file);
 void pufTextureOldLoadBMP(PUFtexture*, char const*);
 void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height);
 void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height);
+void pufTextureClear(PUFtexture* texture);
 void pufTextureUpdate(PUFtexture* texture);
 void pufTextureBind(PUFtexture* texture);
 
