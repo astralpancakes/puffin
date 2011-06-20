@@ -39,8 +39,8 @@ typedef struct
 {
     GLuint textureId;
     //GLenum textureUnit;
-    GLulong width;
-    GLulong height;
+    GLuint width;
+    GLuint height;
     GLint  pixelBytes;    
     GLuint pixelBuffer;
     GLubyte* pixels;
@@ -107,8 +107,8 @@ void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char con
 
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
 void pufTextureOldLoadBMP(PUFtexture*, char const*);
-void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height);
-void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height);
+void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height);
+void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height);
 void pufTextureClear(PUFtexture* texture);
 void pufTextureUpdate(PUFtexture* texture);
 void pufTextureBind(PUFtexture* texture);

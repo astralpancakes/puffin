@@ -71,7 +71,7 @@ void pufUpdate()
         }
     
 
-        int delay = puffin.frameTick + (1000/puffin.frameRate) - SDL_GetTicks();
+        unsigned int delay = (unsigned int)(puffin.frameTick + (1000/puffin.frameRate) - SDL_GetTicks());
     
         if(delay > 0) 
             SDL_Delay(delay);
@@ -415,9 +415,11 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height) //creates blank Puffin texture of specified size
+void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height) //creates blank Puffin texture of specified size
 {
     texture->pixelBytes = 4;
     texture->textureFormat = GL_RGBA;
@@ -433,10 +435,10 @@ void pufTextureCreateRGBA(PUFtexture* texture, GLulong width, GLulong height) //
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height)
+void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height)
 {
     texture->pixelBytes = 3;
     texture->textureFormat = GL_RGB;
@@ -452,6 +454,7 @@ void pufTextureCreateRGB(PUFtexture* texture, GLulong width, GLulong height)
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
@@ -468,6 +471,8 @@ void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
     glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 void pufTextureBind(PUFtexture* texture) //binds Puffin texture for use

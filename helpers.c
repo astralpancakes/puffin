@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char* pufReadFile(char const* name)
+char* pufReadFile(char const* file)
 {
   FILE* f;
-  int len;
+  long len;
   char* s = 0;
   // open file an get its length
-  if (!(f = fopen(name, "r"))) goto readFileError1;
+  if (!(f = fopen(file, "r"))) goto readFileError1;
   fseek(f, 0, SEEK_END);
   len = ftell(f);
   // read the file in an allocated buffer
@@ -20,3 +20,20 @@ char* pufReadFile(char const* name)
   readFileError1: return s;
 }
 
+int pufClampi(int value, int min, int max)
+{
+    if (value > max)
+        value = max;
+    if (value < min)
+        value = min;
+    return value;
+}
+
+float pufClampf(float value, float min, float max)
+{
+    if (value > max)
+        value = max;
+    if (value < min)
+        value = min;
+    return value;
+}
