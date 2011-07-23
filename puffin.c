@@ -479,7 +479,7 @@ void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height)
 
 void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
 {
-    memset(texture->pixels, 0, texture->width*texture->height*texture->pixelBytes);
+    memset(texture->pixels, 0, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT));
 }
 
 void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
