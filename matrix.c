@@ -76,7 +76,7 @@ GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat* M)
     return M;
 }
 
-GLfloat* pufMatrixProject(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M)
+GLfloat* pufMatrixProjectPersp(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M)
 {
     if ((degrees) & (fov != 0.0)) //fov given as degrees
     {
@@ -88,26 +88,28 @@ GLfloat* pufMatrixProject(float fov, float width, float height, float zNear, flo
 
 	memset(M, 0, sizeof(GLfloat)*16);
 
-	if (fov == 0.0)	 //fov zero for orthographic projection
-	{
-		M[0] = 1.0f/(width/2.0f);
-		M[5] = 1.0f/(height/2.0f);
-		M[10] = -2.0f/(zFar-zNear);
-		M[14] = -((zFar+zNear)/(zFar-zNear));
-		M[15] = 1.0f;
-	}
-	else
-	{
-		M[0] = f/(width/height);
-		M[5] = f;
-		M[10] = (zFar + zNear)/negDepth;
-		M[11] = -1;
-		M[14] = (2.0f*zFar*zNear)/negDepth;
-	}
-	
+    M[0] = f/(width/height);
+    M[5] = f;
+    M[10] = (zFar + zNear)/negDepth;
+    M[11] = -1;
+    M[14] = (2.0f*zFar*zNear)/negDepth;
+		
     return M;
 }
 
+GLfloat* pufMatrixProjectOrtho(float width, float height, float zNear, float zFar, GLfloat* M)
+{
+    memset(M, 0, sizeof(GLfloat)*16);
+    
+    M[0] = 1.0f/(width);
+    M[5] = 1.0f/(height);
+    M[10] = -2.0f/(zFar-zNear);
+    M[14] = -((zFar+zNear)/(zFar-zNear));
+    M[15] = 1.0f;
+    
+    return M;
+
+}
 
 GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
 {

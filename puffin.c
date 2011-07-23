@@ -70,10 +70,11 @@ void pufUpdate()
             puffin.frameTick = SDL_GetTicks();
         }
     
-
+        //printf("Frametick: %lu\n", puffin.frameTick);
         unsigned int delay = (unsigned int)(puffin.frameTick + (1000/puffin.frameRate) - SDL_GetTicks());
-    
-        if(delay > 0) 
+        //if (delay > 17)
+        //    printf("Delay: %u\n", delay);
+        if(delay > 0 && delay < 17) //max delay is about one full frame at 60 fps 
             SDL_Delay(delay);
         puffin.frameTick = SDL_GetTicks();
     }
@@ -111,7 +112,11 @@ void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    pufMatrixProject(fov, camera->width, camera->height, nearClip, farClip,true, camera->projectionMatrix);
+    
+    if (fov == 0.0)
+        pufMatrixProjectOrtho(camera->width, camera->height, nearClip, farClip, camera->projectionMatrix);
+    else
+        pufMatrixProjectPersp(fov, camera->width, camera->height, nearClip, farClip,true, camera->projectionMatrix);
     
     for (int i=0;i < 15; i++)
 		camera->cameraMatrix[i] = 0.0f;
@@ -145,6 +150,7 @@ void pufMeshInit(PUFmesh* mesh) //zero the modelview matrix of the mesh
     mesh->modelView[5] = 1.0f;
     mesh->modelView[10] = 1.0f;
     mesh->modelView[15] = 1.0f;
+    
 }
 
 void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
@@ -235,57 +241,62 @@ void pufMeshBind(PUFmesh* mesh) //uploads Puffin mesh vertex buffer object
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
 }
 
-void pufMeshDraw(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws Puffin mesh
+void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws Puffin mesh
 {
-	
-		glUseProgram(shader->shaderProgram);
-		GLint uniformModelviewProjection = glGetUniformLocation(shader->shaderProgram, "modelviewProjection");
-		GLfloat modelviewProjectionMatrix[16];
-        GLfloat modelviewCameraMatrix[16];
-        
-        pufMatrixMult(camera->cameraMatrix, mesh->modelView, modelviewCameraMatrix);
-		pufMatrixMult(camera->projectionMatrix, modelviewCameraMatrix, modelviewProjectionMatrix);
-		glUniformMatrix4fv(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
-	
-		GLint uniformNormalMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewMatrix");
-		glUniformMatrix4fv(uniformNormalMatrix, 1, GL_FALSE, mesh->modelView);
-	
-		GLint vertexPosition = glGetAttribLocation(shader->shaderProgram, "vertexPosition");
-		GLint vertexColor = glGetAttribLocation(shader->shaderProgram, "vertexColor");
-		GLint vertexTexture = glGetAttribLocation(shader->shaderProgram, "vertexTexture");
-		GLint vertexNormal = glGetAttribLocation(shader->shaderProgram, "vertexNormal");
-		GLint vertexMeta3f = glGetAttribLocation(shader->shaderProgram, "inMeta3f");
-		GLint vertexMeta1f = glGetAttribLocation(shader->shaderProgram, "inMeta1f");
-	
-		glEnableVertexAttribArray(vertexPosition);
-		glEnableVertexAttribArray(vertexColor);
-		glEnableVertexAttribArray(vertexTexture);
-		glEnableVertexAttribArray(vertexNormal);
-		glEnableVertexAttribArray(vertexMeta3f);
-		glEnableVertexAttribArray(vertexMeta1f);
-	
-	
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-	
-	
-		glVertexAttribPointer(vertexPosition, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0);
-		glVertexAttribPointer(vertexColor, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
-		glVertexAttribPointer(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
-		glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
-		glVertexAttribPointer(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
-		glVertexAttribPointer(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
-	
-		glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
+    glUseProgram(shader->shaderProgram);
 		
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GLint uniformModelviewProjection = glGetUniformLocation(shader->shaderProgram, "modelviewProjection");
+    GLint uniformNormalMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewMatrix");    
+    GLint uniformRenderTargetWidth = glGetUniformLocation(shader->shaderProgram, "renderTargetWidth");
+    GLint uniformRenderTargetHeight = glGetUniformLocation(shader->shaderProgram, "renderTargetHeight");
+    
+    GLfloat modelviewProjectionMatrix[16];
+    GLfloat modelviewCameraMatrix[16];
+    pufMatrixMult(camera->cameraMatrix, mesh->modelView, modelviewCameraMatrix);
+    pufMatrixMult(camera->projectionMatrix, modelviewCameraMatrix, modelviewProjectionMatrix);
+    glUniformMatrix4fv(uniformModelviewProjection, 1, GL_FALSE, modelviewProjectionMatrix);
+
+    glUniformMatrix4fv(uniformNormalMatrix, 1, GL_FALSE, mesh->modelView);
+    
+	glUniform1f(uniformRenderTargetWidth, (float)camera->width);
+    glUniform1f(uniformRenderTargetHeight, (float)camera->height);
+    
+    GLint vertexPosition = glGetAttribLocation(shader->shaderProgram, "vertexPosition");
+    GLint vertexColor = glGetAttribLocation(shader->shaderProgram, "vertexColor");
+    GLint vertexTexture = glGetAttribLocation(shader->shaderProgram, "vertexTexture");
+    GLint vertexNormal = glGetAttribLocation(shader->shaderProgram, "vertexNormal");
+    GLint vertexMeta3f = glGetAttribLocation(shader->shaderProgram, "inMeta3f");
+    GLint vertexMeta1f = glGetAttribLocation(shader->shaderProgram, "inMeta1f");
 	
-		glDisableVertexAttribArray(vertexMeta1f);
-		glDisableVertexAttribArray(vertexMeta3f);
-		glDisableVertexAttribArray(vertexNormal);
-		glDisableVertexAttribArray(vertexTexture);
-		glDisableVertexAttribArray(vertexColor);
-		glDisableVertexAttribArray(vertexPosition);
-		glUseProgram(0);
+    glEnableVertexAttribArray(vertexPosition);
+    glEnableVertexAttribArray(vertexColor);
+    glEnableVertexAttribArray(vertexTexture);
+    glEnableVertexAttribArray(vertexNormal);
+    glEnableVertexAttribArray(vertexMeta3f);
+    glEnableVertexAttribArray(vertexMeta1f);
+	
+	
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+	
+	
+    glVertexAttribPointer(vertexPosition, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0);
+    glVertexAttribPointer(vertexColor, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3));
+    glVertexAttribPointer(vertexTexture, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6));
+    glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9));
+    glVertexAttribPointer(vertexMeta3f, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12));
+    glVertexAttribPointer(vertexMeta1f, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15));
+	
+    glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
+		
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+    glDisableVertexAttribArray(vertexMeta1f);
+    glDisableVertexAttribArray(vertexMeta3f);
+    glDisableVertexAttribArray(vertexNormal);
+    glDisableVertexAttribArray(vertexTexture);
+    glDisableVertexAttribArray(vertexColor);
+    glDisableVertexAttribArray(vertexPosition);
+    glUseProgram(0);
 	
 
 }
@@ -362,26 +373,35 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         texture->pixelBytes = pixelBits/8;
 
 #ifdef PUFFIN_SQUAWK
-        printf("Puffin BMP loader opened file %s\n",name);
+        printf("Puffin BMP loader opened file %s\n",file);
         printf("Pixel data start offset is %i...\n", pixelDataStartingOffset);
-        printf("Width is %lu...\n", texture->width);
-        printf("Height is %lu...\n", texture->height);
+        printf("Width is %i...\n", texture->width);
+        printf("Height is %i...\n", texture->height);
         printf("Number of bits per pixel is %i...\n", pixelBits);
         printf("Number of bytes per pixel is %i...\n", texture->pixelBytes);
-        printf("Allocating memory for %lu pixels of %i bytes each...\n",texture->height*texture->width, texture->pixelBytes);
+        printf("Allocating memory for %i pixels of %i bytes each...\n",texture->height*texture->width, texture->pixelBytes);
 #endif
+        GLubyte *tempBuffer = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
+        texture->pixels = (GLfloat*)malloc(texture->height*texture->width*texture->pixelBytes*sizeof(GL_FLOAT));
         
-        texture->pixels = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
+        
         
         fseek(img,pixelDataStartingOffset,SEEK_SET);	// start reading image data
         for(int i = 0;i<texture->height;i++) // for each row...
         {
             for(int j = 0;j<texture->width;j++) // for each pixel...
-                fread(texture->pixels+(i*texture->width*texture->pixelBytes+j*texture->pixelBytes),texture->pixelBytes,1,img); // read it...
+                fread(tempBuffer+(i*texture->width*texture->pixelBytes+j*texture->pixelBytes),texture->pixelBytes,1,img); // read it...
             if ((texture->width*texture->pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
                 fseek(img,4 - ((texture->width*texture->pixelBytes) % 4), SEEK_CUR);
         }
         fclose(img);
+        
+        for (int i=0; i < texture->width*texture->height*texture->pixelBytes; i++)
+        {
+            texture->pixels[i] = (GLfloat)tempBuffer[i]/255.0f;
+        }
+        free((void*)tempBuffer);
+        
     }
     else // failed to open file, let's make the texture solid white instead
     {
@@ -389,9 +409,9 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         texture->width = 1;
         texture->height = 1;
         texture->pixelBytes = 4;
-        texture->pixels = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
+        texture->pixels = (GLfloat*)malloc(texture->height*texture->width*texture->pixelBytes*sizeof(GL_FLOAT));
         for (int i = 0;i<texture->pixelBytes;i++)
-            texture->pixels[i] = 255;
+            texture->pixels[i] = 1;
     }
 
     if (texture->pixelBytes == 4)  // this will be wrong on big-endian, but whatever...
@@ -405,8 +425,8 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         
     glGenBuffers(1, &texture->pixelBuffer);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes, NULL,GL_STATIC_DRAW);
-    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes, texture->pixels);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), texture->pixels);
         
     
 
@@ -414,7 +434,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -426,7 +446,7 @@ void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height) //cr
     texture->width = width;
     texture->height = height;
     
-    texture->pixels = (GLubyte*)malloc(texture->width*texture->height*texture->pixelBytes);
+    texture->pixels = (GLfloat*)malloc(texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT));
     
     glGenBuffers(1, &texture->pixelBuffer);
 
@@ -445,7 +465,7 @@ void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height)
     texture->width = width;
     texture->height = height;
     
-    texture->pixels = (GLubyte*)malloc(texture->width*texture->height*texture->pixelBytes);
+    texture->pixels = (GLfloat*)malloc(texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT));
     
     glGenBuffers(1, &texture->pixelBuffer);
     
@@ -465,12 +485,12 @@ void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
 void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes, NULL,GL_STATIC_DRAW);
-    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes, texture->pixels);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), texture->pixels);
 
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
-    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -485,54 +505,40 @@ void pufTextureDestroy(PUFtexture* texture) //deletes Puffin texture
     free((void*)texture->pixels);
 }
 
-void pufTextureOldLoadBMP(PUFtexture* texture, char const* name)
+void pufFramebufferInit(PUFframebuffer* framebuffer)
+{
+    glGenFramebuffers(1, &framebuffer->framebufferId);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
+    glGenRenderbuffers(1, &framebuffer->depthbufferId);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture, GLenum attachment)
 {
 
-	SDL_Surface* surface;
-surface = SDL_LoadBMP(name);
+    glBindTexture(GL_TEXTURE_2D, texture->textureId);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
+    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
+    glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texture->width, texture->height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer->depthbufferId);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->textureId, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-#ifdef PUFFIN_SQUAWK
-	printf("Loading image %s...\n", name);
-	if ( (surface->w & (surface->w - 1)) != 0 ) {
-		printf("Warning: Width of %s is not a power of 2\n",name);
-	}
+void pufFramebufferBind(PUFframebuffer* framebuffer)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
+//    glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
+}
 
-
-	if ( (surface->h & (surface->h - 1)) != 0 ) {
-		printf("Warning: Height of %s is not a power of 2\n",name);
-	}
-#endif
-	
-	texture->pixelBytes = surface->format->BytesPerPixel; // get the number of channels in the SDL surface
-	if (texture->pixelBytes == 4)     // contains an alpha channel
-	{
-		if (surface->format->Rmask == 0x000000ff)
-			texture->textureFormat = GL_RGBA;
-		else
-			texture->textureFormat = GL_BGRA;
-	} 
-	else if (texture->pixelBytes == 3)     // no alpha channel
-	{
-		if (surface->format->Rmask == 0x000000ff)
-			texture->textureFormat = GL_RGB;
-		else
-			texture->textureFormat = GL_BGR;
-	} 
-	else 
-	{
-		printf("warning: %s is not truecolor\n",name);
-	}
-
-
-	glGenBuffers(1, &texture->pixelBuffer);
-	
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
-	glBufferData(GL_PIXEL_UNPACK_BUFFER, surface->w*surface->h*surface->format->BytesPerPixel, NULL,GL_STATIC_DRAW);
-	glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, surface->w*surface->h*surface->format->BytesPerPixel, surface->pixels);
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,surface->w,surface->h,0,texture->textureFormat,GL_UNSIGNED_BYTE,NULL);
-	if(surface)
-		SDL_FreeSurface(surface);
+void pufFramebufferUnbind()
+{
+//        glBindRenderbuffer(GL_RENDERBUFFER,0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

@@ -8,8 +8,8 @@ GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, bool degrees, GLf
 GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat*);
 
 
-GLfloat* pufMatrixProject(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M);
-
+GLfloat* pufMatrixProjectPersp(float fov, float width, float height, float zNear, float zFar, bool degrees, GLfloat* M);
+GLfloat* pufMatrixProjectOrtho(float width, float height, float zNear, float zFar, GLfloat* M);
 
 GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M);
 

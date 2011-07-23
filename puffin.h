@@ -43,11 +43,20 @@ typedef struct
     GLuint height;
     GLint  pixelBytes;    
     GLuint pixelBuffer;
-    GLubyte* pixels;
+    GLfloat* pixels;
     GLenum textureFormat;
 
 }
 PUFtexture;
+
+typedef struct
+{
+    GLuint framebufferId;
+    GLuint depthbufferId;
+    GLuint depthbufferWidth;
+    GLuint depthbufferHeight;
+}
+PUFframebuffer;
 
 typedef struct
 {
@@ -76,6 +85,8 @@ typedef struct
 {
     PUFkeyframe* keys;
     int keyCount;
+    
+    float position;
 }
 PUFanimation;
 
@@ -95,7 +106,7 @@ void pufMeshInit(PUFmesh* mesh);
 void pufMeshShapeQuad(PUFmesh* mesh);
 void pufMeshLoadOBJ(PUFmesh* mesh, char const* file);
 void pufMeshBind(PUFmesh* mesh);
-void pufMeshDraw(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader);
+void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader);
 
 void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z);
 void pufMeshRotate(PUFmesh* mesh, float angle, float X, float Y, float Z, bool);
@@ -106,7 +117,6 @@ void pufMeshDestroy(PUFmesh* mesh);
 void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char const* fragmentShaderSourceFile);
 
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
-void pufTextureOldLoadBMP(PUFtexture*, char const*);
 void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height);
 void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height);
 void pufTextureClear(PUFtexture* texture);
@@ -114,5 +124,10 @@ void pufTextureUpdate(PUFtexture* texture);
 void pufTextureBind(PUFtexture* texture);
 
 void pufTextureDestroy(PUFtexture* texture);
+
+void pufFramebufferInit(PUFframebuffer* framebuffer);
+void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture, GLenum attachment);
+void pufFramebufferBind(PUFframebuffer* framebuffer);
+void pufFramebufferUnbind();
 
 #endif
