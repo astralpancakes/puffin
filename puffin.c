@@ -69,11 +69,8 @@ void pufUpdate()
         {
             puffin.frameTick = SDL_GetTicks();
         }
-    
-        //printf("Frametick: %lu\n", puffin.frameTick);
+
         unsigned int delay = (unsigned int)(puffin.frameTick + (1000/puffin.frameRate) - SDL_GetTicks());
-        //if (delay > 17)
-        //    printf("Delay: %u\n", delay);
         if(delay > 0 && delay < 17) //max delay is about one full frame at 60 fps 
             SDL_Delay(delay);
         puffin.frameTick = SDL_GetTicks();
