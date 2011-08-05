@@ -235,10 +235,10 @@ void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) //loads an OBJ file into Pu
 
 void pufMeshBind(PUFmesh* mesh) //uploads Puffin mesh vertex buffer object
 {
-		glGenBuffers(1, &mesh->vertexBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
+    glGenBuffers(1, &mesh->vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
 }
 
 void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws Puffin mesh
