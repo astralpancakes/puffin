@@ -301,6 +301,7 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws 
 
 }
 
+
 void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z) //translates Puffin mesh
 {
 	//copy the existing mesh modelview matrix into tempModelView, ask for a new matrix for tempMatrix, then multiply them and put into mesh modelview
