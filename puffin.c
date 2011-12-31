@@ -1,15 +1,18 @@
-#include <SDL/SDL.h>
+
+//#include <SDL/SDL.h>
 #ifdef PUFFIN_GLEWDOTFRAMEWORK
 #include <GLEW/glew.h>
 #else
 #include <GL/glew.h>
 #endif
+#include <GLUT/glut.h>
 #include "puffin.h"
 #include "loadobj.h"
 #include "matrix.h"
 #include "helpers.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 //globals
@@ -18,62 +21,123 @@ static struct {
 	unsigned int windowHeight;
 	unsigned int windowWidth;
     unsigned int frameRate;
-    SDL_Surface* windowSurface;
 	int glMajorVersion;
 	int glMinorVersion;
-    Uint32 frameCounter;
+    unsigned long frameCounter;
     unsigned long frameTick; 
     unsigned long frameDelay;
+    void (*pointerMotionCallback)(int x, int y, int xRel, int yRel);
 } puffin;
 
+typedef struct {
+    int oldX;
+    int oldY;
+    int movedBefore;
+} puffinPointerMotion; 
 
+//#ifdef not iPad etc, #else create for every touch event
+static puffinPointerMotion puffinMouseMotion;
+//#endif
 
-void pufInit(int windowWidth, int windowHeight, int framerate)
+void draw();
+void setup();
+void pufWindowResize(int, int);
+void pufPassiveMotion(int,int);
+
+void pufInit(int windowWidth, int windowHeight, int framerate, const char* windowTitle)
 {
 	if (windowHeight == 0)	// prevent divide by zero etc
         windowHeight = 1;
     puffin.windowHeight = windowHeight;
     puffin.windowWidth = windowWidth;
-	SDL_Init(SDL_INIT_EVERYTHING);
-    puffin.windowSurface = SDL_SetVideoMode(puffin.windowWidth,puffin.windowHeight,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
-	puffin.frameRate = framerate;
-    glewInit();
+    puffin.frameRate = framerate;
+	int arghc = 0;
+    char* arghv;
+    glutInit(&arghc, &arghv);
+    
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
+    //glutInitDisplayString( "rgba double depth samples>=8 "); 
+    glutInitWindowSize(windowWidth, windowHeight);
+    glutCreateWindow(windowTitle);
+    
+    glutDisplayFunc(draw);
+    glutIdleFunc(NULL);
+    glutKeyboardFunc(NULL);
+    glutReshapeFunc(pufWindowResize);
+    glutPassiveMotionFunc(pufPassiveMotion);
+    puffin.pointerMotionCallback = NULL;
 
-	//get OpenGL vPUFglobals
-	puffin.glMajorVersion = atoi(&glGetString(GL_VERSION)[0]);
-	puffin.glMajorVersion = atoi(&glGetString(GL_VERSION)[2]); 
+    puffinMouseMotion.oldX = 0;
+    puffinMouseMotion.oldY = 0;
+    puffinMouseMotion.movedBefore = 0;
+
+    glewInit();
+	
+	puffin.glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[0]);
+	puffin.glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[2]); 
     puffin.frameCounter = 0;
     puffin.frameDelay = 0;    
     puffin.frameTick = 0;
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+}
+
+void pufRun()
+{
+    setup();
+    glutMainLoop();
+}
+
+
+void pufKeyboardCallback(void (*func)(unsigned char, int, int))
+{
+    glutKeyboardFunc(func);
+}
+
+void pufPointerMotionCallback(void (*func)(int x, int y, int xRel, int yRel))
+{
+    puffin.pointerMotionCallback = func;
+}
+
+void pufPassiveMotion(int x, int y)
+{
+    if(puffinMouseMotion.movedBefore == 0)
+    {
+        puffinMouseMotion.oldX = x;
+        puffinMouseMotion.oldY = y;
+        puffinMouseMotion.movedBefore = 1;
+    }
+    if(puffin.pointerMotionCallback != NULL)
+        (*puffin.pointerMotionCallback)(x, y, puffinMouseMotion.oldX, puffinMouseMotion.oldY);
     
-   
-    
+    puffinMouseMotion.oldX = x;
+    puffinMouseMotion.oldY = y;
 }
 
 void pufWindowResize(int windowWidth, int windowHeight)
 {
     puffin.windowWidth = windowWidth;
     puffin.windowHeight = windowHeight;
-    puffin.windowSurface = SDL_SetVideoMode(puffin.windowWidth,puffin.windowHeight,24,SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_RESIZABLE);
+
 }
 
 void pufUpdate()
 {
-    SDL_GL_SwapBuffers();
-    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+    glutSwapBuffers();
+    glutPostRedisplay();
+    //glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
     
     if (puffin.frameRate > 0)
     {
         if (puffin.frameTick == 0)
         {
-            puffin.frameTick = SDL_GetTicks();
+            puffin.frameTick = glutGet(GLUT_ELAPSED_TIME);
         }
-
-        unsigned int delay = (unsigned int)(puffin.frameTick + (1000/puffin.frameRate) - SDL_GetTicks());
-        if(delay > 0 && delay < 17) //max delay is about one full frame at 60 fps 
-            SDL_Delay(delay);
-        puffin.frameTick = SDL_GetTicks();
+        
+        int maxDelay = (int)(1000.0f/(float)puffin.frameRate+0.5f);
+        unsigned int delay = (unsigned int)(puffin.frameTick + (1000/puffin.frameRate) - glutGet(GLUT_ELAPSED_TIME));
+        while(delay > 0 && delay < maxDelay) //max delay is about one full frame at 60 fps 
+            delay = (unsigned int)(puffin.frameTick + (1000/puffin.frameRate) - glutGet(GLUT_ELAPSED_TIME));
+        puffin.frameTick = glutGet(GLUT_ELAPSED_TIME);
     }
     ++puffin.frameCounter;
     
@@ -81,18 +145,17 @@ void pufUpdate()
 }
 
 float pufGetStats(int type)
-{
+{    
     float returnValue;
     switch (type)
     {
         case 0:
-            returnValue = (float)SDL_GetTicks()/1000;
+            returnValue = (float)glutGet(GLUT_ELAPSED_TIME)/1000;
             break;
         case 1:
-            returnValue = (puffin.frameCounter*1000.0f)/(SDL_GetTicks());
+            returnValue = (puffin.frameCounter*1000.0f)/(glutGet(GLUT_ELAPSED_TIME));
             break;
     }
-    
     return returnValue;
 }
 
@@ -109,7 +172,6 @@ void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    
     if (fov == 0.0)
         pufMatrixProjectOrtho(camera->width, camera->height, nearClip, farClip, camera->projectionMatrix);
     else

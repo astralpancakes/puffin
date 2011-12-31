@@ -1,12 +1,13 @@
 #ifndef PUFFIN_H
 #define PUFFIN_H
 #include <stdbool.h>
-#include <SDL/SDL.h>
+
 #ifdef PUFFIN_GLEWDOTFRAMEWORK
 #include <GLEW/glew.h>
 #else
 #include <GL/glew.h>
 #endif
+#include <GLUT/glut.h>
 
 typedef struct
 {
@@ -91,11 +92,15 @@ typedef struct
 PUFanimation;
 
 
-void pufInit(int windowWidth, int windowHeight, int framerate);
+void pufInit(int windowWidth, int windowHeight, int framerate, const char * windowTitle);
+void pufIdle(void);
+void pufRun();
 void pufUpdate();
 
 float pufGetStats(int type);
 
+void pufKeyboardCallback(void (*func)(unsigned char, int, int));
+void pufPointerMotionCallback(void (*func)(int,int,int,int));
 void pufWindowResize(int windowWidth, int windowHeight);
 
 void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip);
