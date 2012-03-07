@@ -100,7 +100,7 @@ void pufUpdate();
 float pufGetStats(int type);
 
 void pufKeyboardCallback(void (*func)(unsigned char, int, int));
-void pufPointerMotionCallback(void (*func)(int,int,int,int));
+void pufPointerMotionCallback(void (*func)(float,float,float,float));
 void pufWindowResize(int windowWidth, int windowHeight);
 
 void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip);

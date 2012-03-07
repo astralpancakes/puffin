@@ -60,7 +60,7 @@ int pufInternMultitouchCallback(int device, pufMultitouchFinger *data, int nFing
                f->identifier, f->state, f->foo3, f->foo4,
                f->size, f->unk2);
         */
-        (*pufMultitouchCallback)(f->normalized.pos.x, f->normalized.pos.y, f->normalized.vel.x, f->normalized.vel.y);
+        (pufMultitouchCallback)(f->normalized.pos.x, f->normalized.pos.y, f->normalized.vel.x, f->normalized.vel.y);
     }
     //printf("\n");
     return 0;

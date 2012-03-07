@@ -26,12 +26,14 @@ static struct {
     unsigned long frameCounter;
     unsigned long frameTick; 
     unsigned long frameDelay;
-    void (*pointerMotionCallback)(int x, int y, int xRel, int yRel);
+    void (*pointerMotionCallback)(float x, float y, float xRel, float yRel);
 } puffin;
 
 typedef struct {
-    int oldX;
-    int oldY;
+    float x;
+    float y;
+    float oldX;
+    float oldY;
     int movedBefore;
 } puffinPointerMotion; 
 
@@ -67,8 +69,8 @@ void pufInit(int windowWidth, int windowHeight, int framerate, const char* windo
     glutPassiveMotionFunc(pufPassiveMotion);
     puffin.pointerMotionCallback = NULL;
 
-    puffinMouseMotion.oldX = 0;
-    puffinMouseMotion.oldY = 0;
+    puffinMouseMotion.oldX = 0.0f;
+    puffinMouseMotion.oldY = 0.0f;
     puffinMouseMotion.movedBefore = 0;
 
     glewInit();
@@ -93,24 +95,26 @@ void pufKeyboardCallback(void (*func)(unsigned char, int, int))
     glutKeyboardFunc(func);
 }
 
-void pufPointerMotionCallback(void (*func)(int x, int y, int xRel, int yRel))
+void pufPointerMotionCallback(void (*func)(float x, float y, float xRel, float yRel))
 {
     puffin.pointerMotionCallback = func;
 }
 
 void pufPassiveMotion(int x, int y)
 {
+    puffinMouseMotion.x = (float)x/(float)puffin.windowWidth;
+    puffinMouseMotion.y = (float)y/(float)puffin.windowHeight;
     if(puffinMouseMotion.movedBefore == 0)
     {
-        puffinMouseMotion.oldX = x;
-        puffinMouseMotion.oldY = y;
+        puffinMouseMotion.oldX = puffinMouseMotion.x;
+        puffinMouseMotion.oldY = puffinMouseMotion.y;
         puffinMouseMotion.movedBefore = 1;
     }
     if(puffin.pointerMotionCallback != NULL)
-        (*puffin.pointerMotionCallback)(x, y, puffinMouseMotion.oldX, puffinMouseMotion.oldY);
-    
-    puffinMouseMotion.oldX = x;
-    puffinMouseMotion.oldY = y;
+        //(*puffin.pointerMotionCallback)(x, y, puffinMouseMotion.oldX, puffinMouseMotion.oldY);
+    (*puffin.pointerMotionCallback)(puffinMouseMotion.x,puffinMouseMotion.y, puffinMouseMotion.x-puffinMouseMotion.oldX, puffinMouseMotion.y-puffinMouseMotion.oldY);
+    puffinMouseMotion.oldX = puffinMouseMotion.x;
+    puffinMouseMotion.oldY = puffinMouseMotion.y;
 }
 
 void pufWindowResize(int windowWidth, int windowHeight)
@@ -421,8 +425,9 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     FILE* img = NULL;
     if ((img = fopen(file,"r")))
     {
+       
         int pixelDataStartingOffset;
-        int pixelBits;
+        GLshort pixelBits;
         fseek(img,10,SEEK_SET);
         fread(&pixelDataStartingOffset,4,1,img);
         fseek(img,4,SEEK_CUR);
@@ -430,7 +435,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         fread(&texture->height,4,1,img);
         fseek(img,2,SEEK_CUR);
         fread(&pixelBits,2,1,img);
-        texture->pixelBytes = pixelBits/8;
+        texture->pixelBytes = (int)pixelBits/8;
 
 #ifdef PUFFIN_SQUAWK
         printf("Puffin BMP loader opened file %s\n",file);
@@ -443,7 +448,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
 #endif
         GLubyte *tempBuffer = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
         texture->pixels = (GLfloat*)malloc(texture->height*texture->width*texture->pixelBytes*sizeof(GL_FLOAT));
-        
+                 
         
         
         fseek(img,pixelDataStartingOffset,SEEK_SET);	// start reading image data
@@ -454,6 +459,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
             if ((texture->width*texture->pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
                 fseek(img,4 - ((texture->width*texture->pixelBytes) % 4), SEEK_CUR);
         }
+        
         fclose(img);
         
         for (int i=0; i < texture->width*texture->height*texture->pixelBytes; i++)
@@ -473,14 +479,15 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         for (int i = 0;i<texture->pixelBytes;i++)
             texture->pixels[i] = 1;
     }
-
     if (texture->pixelBytes == 4)  // this will be wrong on big-endian, but whatever...
         texture->textureFormat = GL_BGRA;
     else if (texture->pixelBytes == 3)
         texture->textureFormat = GL_BGR;
     else
-        printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.", file);
-    
+    {
+        printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.\n", file);
+        printf("Bytes per pixel: %i\n",texture->pixelBytes);
+    }
     
         
     glGenBuffers(1, &texture->pixelBuffer);
