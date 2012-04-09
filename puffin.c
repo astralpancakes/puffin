@@ -417,6 +417,22 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 
 } 
 
+void pufColorFromRGB(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B)
+{
+    color->R = R;
+    color->G = G;
+    color->B = B;
+    color->A = 1.0f;
+}
+
+void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A)
+{
+    color->R = R;
+    color->G = G;
+    color->B = B;
+    color->A = A;
+}
+
 void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file into Puffin texture, binds the pixel buffer object and loads into OpenGL texture map
 {
     glGenTextures(1, &texture->textureId);
@@ -542,6 +558,22 @@ void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+void pufTexturePixelPut(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color)
+{
+    memcpy(&(texture->pixels[(y*texture->width*texture->pixelBytes*sizeof(GL_FLOAT))+(x*texture->pixelBytes)]), &color, texture->pixelBytes*sizeof(GL_FLOAT));
+    //texture.pixels[((drip->yPos+(drip->yDir*i))*bufferWidth*3)+(drip->xPos*3)+j] = newColor;}
+}
+
+PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y) 
+{
+    PUFcolor color;
+    memcpy(&color, &(texture->pixels[(y*texture->width*texture->pixelBytes*sizeof(GL_FLOAT))+(x*texture->pixelBytes)]), texture->pixelBytes*sizeof(GL_FLOAT));
+    if (texture->pixelBytes == 3)
+        color.A = 1.0f;
+    return color;
 }
 
 void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
