@@ -67,6 +67,7 @@ void pufInit(int windowWidth, int windowHeight, int framerate, const char* windo
     glutKeyboardFunc(NULL);
     glutReshapeFunc(pufWindowResize);
     glutPassiveMotionFunc(pufPassiveMotion);
+    //glutFullScreen();
     puffin.pointerMotionCallback = NULL;
 
     puffinMouseMotion.oldX = 0.0f;
@@ -100,7 +101,7 @@ void pufPointerMotionCallback(void (*func)(float x, float y, float xRel, float y
     puffin.pointerMotionCallback = func;
 }
 
-void pufPassiveMotion(int x, int y)
+void pufPassiveMotion(int x, int y) // takes GLUT's mouse motion callback and translates it to pufPointerMotionCallback which includes info about relative mouse motion
 {
     puffinMouseMotion.x = (float)x/(float)puffin.windowWidth;
     puffinMouseMotion.y = (float)y/(float)puffin.windowHeight;
@@ -112,7 +113,7 @@ void pufPassiveMotion(int x, int y)
     }
     if(puffin.pointerMotionCallback != NULL)
         //(*puffin.pointerMotionCallback)(x, y, puffinMouseMotion.oldX, puffinMouseMotion.oldY);
-    (*puffin.pointerMotionCallback)(puffinMouseMotion.x,puffinMouseMotion.y, puffinMouseMotion.x-puffinMouseMotion.oldX, puffinMouseMotion.y-puffinMouseMotion.oldY);
+        (*puffin.pointerMotionCallback)(puffinMouseMotion.x,puffinMouseMotion.y, puffinMouseMotion.x-puffinMouseMotion.oldX, puffinMouseMotion.y-puffinMouseMotion.oldY);
     puffinMouseMotion.oldX = puffinMouseMotion.x;
     puffinMouseMotion.oldY = puffinMouseMotion.y;
 }
@@ -502,7 +503,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     else
     {
         printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.\n", file);
-        printf("Bytes per pixel: %i\n",texture->pixelBytes);
+        printf("Bytes per pixel: %li\n",texture->pixelBytes);
     }
     
         
@@ -517,7 +518,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F_ARB,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -606,11 +607,11 @@ void pufTextureDestroy(PUFtexture* texture) //deletes Puffin texture
 
 void pufFramebufferInit(PUFframebuffer* framebuffer)
 {
-    glGenFramebuffers(1, &framebuffer->framebufferId);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
-    glGenRenderbuffers(1, &framebuffer->depthbufferId);
+    glGenFramebuffersEXT(1, &framebuffer->framebufferId);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer->framebufferId);
+    glGenRenderbuffersEXT(1, &framebuffer->depthbufferId);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
 
 void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture, GLenum attachment)
@@ -621,23 +622,23 @@ void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture, GLe
     glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
-    glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texture->width, texture->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer->depthbufferId);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->textureId, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer->framebufferId);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,framebuffer->depthbufferId);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, texture->width, texture->height);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, framebuffer->depthbufferId);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, attachment, GL_TEXTURE_2D, texture->textureId, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
 
 void pufFramebufferBind(PUFframebuffer* framebuffer)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer->framebufferId);
 //    glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
 }
 
 void pufFramebufferUnbind()
 {
 //        glBindRenderbuffer(GL_RENDERBUFFER,0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
