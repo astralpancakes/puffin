@@ -10,6 +10,7 @@
 #include "loadobj.h"
 #include "matrix.h"
 #include "helpers.h"
+#include "particle.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -418,14 +419,6 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 
 } 
 
-void pufColorFromRGB(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B)
-{
-    color->R = R;
-    color->G = G;
-    color->B = B;
-    color->A = 1.0f;
-}
-
 void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A)
 {
     color->R = R;
@@ -452,7 +445,13 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         fread(&texture->height,4,1,img);
         fseek(img,2,SEEK_CUR);
         fread(&pixelBits,2,1,img);
-        texture->pixelBytes = (int)pixelBits/8;
+        GLint pixelBytes = (int)pixelBits/8;
+        
+        if (pixelBytes != 4 & pixelBytes != 3)
+        {
+            printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.\n", file);
+            printf("Bytes per pixel: %li\n",pixelBytes);
+        }
 
 #ifdef PUFFIN_SQUAWK
         printf("Puffin BMP loader opened file %s\n",file);
@@ -463,8 +462,8 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         printf("Number of bytes per pixel is %i...\n", texture->pixelBytes);
         printf("Allocating memory for %i pixels of %i bytes each...\n",texture->height*texture->width, texture->pixelBytes);
 #endif
-        GLubyte *tempBuffer = (GLubyte*)malloc(texture->height*texture->width*texture->pixelBytes);
-        texture->pixels = (GLfloat*)malloc(texture->height*texture->width*texture->pixelBytes*sizeof(GL_FLOAT));
+        GLubyte *tempBuffer = (GLubyte*)malloc(texture->height*texture->width*pixelBytes);
+        texture->pixels = (GLfloat*)malloc(texture->height*texture->width*4*sizeof(GL_FLOAT));
                  
         
         
@@ -472,16 +471,21 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         for(int i = 0;i<texture->height;i++) // for each row...
         {
             for(int j = 0;j<texture->width;j++) // for each pixel...
-                fread(tempBuffer+(i*texture->width*texture->pixelBytes+j*texture->pixelBytes),texture->pixelBytes,1,img); // read it...
-            if ((texture->width*texture->pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
-                fseek(img,4 - ((texture->width*texture->pixelBytes) % 4), SEEK_CUR);
+                fread(tempBuffer+(i*texture->width*pixelBytes+j*pixelBytes),pixelBytes,1,img); // read it...
+            if ((texture->width*pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
+                fseek(img,4 - ((texture->width*pixelBytes) % 4), SEEK_CUR);
         }
         
         fclose(img);
         
-        for (int i=0; i < texture->width*texture->height*texture->pixelBytes; i++)
+        for (int i=0; i < texture->width*texture->height; i++)
         {
-            texture->pixels[i] = (GLfloat)tempBuffer[i]/255.0f;
+            for (int j=0; j < 3; j++)
+                texture->pixels[i*pixelBytes+j] = (GLfloat)tempBuffer[i*pixelBytes+j]/255.0f;
+            if(pixelBytes == 3)
+                texture->pixels[i*pixelBytes+3] = 1.0f;
+            else
+                texture->pixels[i*pixelBytes+3] = (GLfloat)tempBuffer[i*pixelBytes+3]/255.0f;
         }
         free((void*)tempBuffer);
         
@@ -491,26 +495,17 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         printf("Puffin BMP loader failed to open file %s\n",file);
         texture->width = 1;
         texture->height = 1;
-        texture->pixelBytes = 4;
-        texture->pixels = (GLfloat*)malloc(texture->height*texture->width*texture->pixelBytes*sizeof(GL_FLOAT));
-        for (int i = 0;i<texture->pixelBytes;i++)
+        texture->pixels = (GLfloat*)malloc(texture->height*texture->width*4*sizeof(GL_FLOAT));
+        for (int i = 0;i<4;i++)
             texture->pixels[i] = 1;
     }
-    if (texture->pixelBytes == 4)  // this will be wrong on big-endian, but whatever...
         texture->textureFormat = GL_BGRA;
-    else if (texture->pixelBytes == 3)
-        texture->textureFormat = GL_BGR;
-    else
-    {
-        printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.\n", file);
-        printf("Bytes per pixel: %li\n",texture->pixelBytes);
-    }
-    
+
         
     glGenBuffers(1, &texture->pixelBuffer);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
-    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), texture->pixels);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*4*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*4*sizeof(GL_FLOAT), texture->pixels);
         
     
 
@@ -523,14 +518,13 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height) //creates blank Puffin texture of specified size
+void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height) //creates blank Puffin texture of specified size
 {
-    texture->pixelBytes = 4;
     texture->textureFormat = GL_RGBA;
     texture->width = width;
     texture->height = height;
     
-    texture->pixels = (GLfloat*)malloc(texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT));
+    texture->pixels = (GLfloat*)malloc(texture->width*texture->height*4*sizeof(GL_FLOAT));
     
     glGenBuffers(1, &texture->pixelBuffer);
 
@@ -542,55 +536,33 @@ void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height) //cr
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height)
+void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color)
 {
-    texture->pixelBytes = 3;
-    texture->textureFormat = GL_RGB;
-    texture->width = width;
-    texture->height = height;
-    
-    texture->pixels = (GLfloat*)malloc(texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT));
-    
-    glGenBuffers(1, &texture->pixelBuffer);
-    
-    glGenTextures(1, &texture->textureId);
-    glBindTexture(GL_TEXTURE_2D, texture->textureId);
-    glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-
-void pufTexturePixelPut(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color)
-{
-    memcpy(&(texture->pixels[(y*texture->width*texture->pixelBytes*sizeof(GL_FLOAT))+(x*texture->pixelBytes)]), &color, texture->pixelBytes*sizeof(GL_FLOAT));
+    memcpy(&(texture->pixels[(y*texture->width*4*sizeof(GL_FLOAT))+(x*4*sizeof(GL_FLOAT))]), &color, 4*sizeof(GL_FLOAT));
     //texture.pixels[((drip->yPos+(drip->yDir*i))*bufferWidth*3)+(drip->xPos*3)+j] = newColor;}
 }
 
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y) 
 {
     PUFcolor color;
-    memcpy(&color, &(texture->pixels[(y*texture->width*texture->pixelBytes*sizeof(GL_FLOAT))+(x*texture->pixelBytes)]), texture->pixelBytes*sizeof(GL_FLOAT));
-    if (texture->pixelBytes == 3)
-        color.A = 1.0f;
+    memcpy(&color, &(texture->pixels[(y*texture->width*4*sizeof(GL_FLOAT))+(x*4*sizeof(GL_FLOAT))]), 4*sizeof(GL_FLOAT));
     return color;
 }
 
 void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
 {
-    memset(texture->pixels, 0, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT));
+    memset(texture->pixels, 0, texture->width*texture->height*4*sizeof(GL_FLOAT));
 }
 
 void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
-    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*texture->pixelBytes*sizeof(GL_FLOAT), texture->pixels);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*4*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, texture->width*texture->height*4*sizeof(GL_FLOAT), texture->pixels);
 
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
-    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,4,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -619,7 +591,7 @@ void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture, GLe
 
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
-    glTexImage2D(GL_TEXTURE_2D,0,texture->pixelBytes,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,4,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer->framebufferId);

@@ -51,7 +51,7 @@ typedef struct
     //GLenum textureUnit;
     GLuint width;
     GLuint height;
-    GLint  pixelBytes;    
+    //GLint  pixelBytes;
     GLuint pixelBuffer;
     GLfloat* pixels;
     GLenum textureFormat;
@@ -100,7 +100,6 @@ typedef struct
 }
 PUFanimation;
 
-
 void pufInit(int windowWidth, int windowHeight, int framerate, const char * windowTitle);
 void pufIdle(void);
 void pufRun();
@@ -130,12 +129,10 @@ void pufMeshDestroy(PUFmesh* mesh);
 
 void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char const* fragmentShaderSourceFile);
 
-void pufColorFromRGB(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B);
 void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);
 
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
-void pufTextureCreateRGBA(PUFtexture* texture, GLuint width, GLuint height);
-void pufTextureCreateRGB(PUFtexture* texture, GLuint width, GLuint height);
+void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height);
 
 void pufTexturePixelPut(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color);
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y);
