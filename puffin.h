@@ -134,7 +134,7 @@ void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat 
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
 void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height);
 
-void pufTexturePixelPut(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color);
+void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color);
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y);
 
 void pufTextureClear(PUFtexture* texture);

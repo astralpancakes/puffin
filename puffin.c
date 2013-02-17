@@ -538,14 +538,39 @@ void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height) //create
 
 void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color)
 {
-    memcpy(&(texture->pixels[(y*texture->width*4*sizeof(GL_FLOAT))+(x*4*sizeof(GL_FLOAT))]), &color, 4*sizeof(GL_FLOAT));
-    //texture.pixels[((drip->yPos+(drip->yDir*i))*bufferWidth*3)+(drip->xPos*3)+j] = newColor;}
+    if (texture->textureFormat == GL_BGRA)
+    {
+        texture->pixels[y*texture->width*4+x*4] = color->B;
+        texture->pixels[y*texture->width*4+x*4+1] = color->G;
+        texture->pixels[y*texture->width*4+x*4+2] = color->R;
+        texture->pixels[y*texture->width*4+x*4+3] = color->A;
+    }
+    else
+    {
+        texture->pixels[y*texture->width*4+x*4] = color->R;
+        texture->pixels[y*texture->width*4+x*4+1] = color->G;
+        texture->pixels[y*texture->width*4+x*4+2] = color->B;
+        texture->pixels[y*texture->width*4+x*4+3] = color->A;
+    }
 }
 
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y) 
 {
     PUFcolor color;
-    memcpy(&color, &(texture->pixels[(y*texture->width*4*sizeof(GL_FLOAT))+(x*4*sizeof(GL_FLOAT))]), 4*sizeof(GL_FLOAT));
+    if (texture->textureFormat == GL_BGRA)
+    {
+        color.B = texture->pixels[y*texture->width*4+x*4];
+        color.G = texture->pixels[y*texture->width*4+x*4+1];
+        color.R = texture->pixels[y*texture->width*4+x*4+2];
+        color.A =texture->pixels[y*texture->width*4+x*4+3];
+    }
+    else
+    {
+        color.R = texture->pixels[y*texture->width*4+x*4];
+        color.G = texture->pixels[y*texture->width*4+x*4+1];
+        color.B = texture->pixels[y*texture->width*4+x*4+2];
+        color.A = texture->pixels[y*texture->width*4+x*4+3];
+    }   
     return color;
 }
 
