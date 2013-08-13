@@ -130,7 +130,7 @@ void pufUpdate()
 {
     glutSwapBuffers();
     glutPostRedisplay();
-    //glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
     
     if (puffin.frameRate > 0)
     {
