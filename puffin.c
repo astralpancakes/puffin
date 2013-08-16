@@ -421,6 +421,14 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 
 void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A)
 {
+    if (R < 0.0f)
+        R = 0.0f;
+    if (G < 0.0f)
+        G = 0.0f;
+    if (B < 0.0f)
+        B = 0.0f;
+    if (A < 0.0f)
+        A = 0.0f;
     color->R = R;
     color->G = G;
     color->B = B;
@@ -538,6 +546,14 @@ void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height) //create
 
 void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color)
 {
+    if (color->R < 0.0f)
+        color->R = 0.0f;
+    if (color->G < 0.0f)
+        color->G = 0.0f;
+    if (color->B < 0.0f)
+        color->B = 0.0f;
+    if (color->A < 0.0f)
+        color->A = 0.0f;
     if (texture->textureFormat == GL_BGRA)
     {
         texture->pixels[y*texture->width*4+x*4] = color->B;
@@ -570,7 +586,15 @@ PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y)
         color.G = texture->pixels[y*texture->width*4+x*4+1];
         color.B = texture->pixels[y*texture->width*4+x*4+2];
         color.A = texture->pixels[y*texture->width*4+x*4+3];
-    }   
+    }
+    if (color.R < 0.0f)
+        color.R = 0.0f;
+    if (color.G < 0.0f)
+        color.G = 0.0f;
+    if (color.B < 0.0f)
+        color.B = 0.0f;
+    if (color.A < 0.0f)
+        color.A = 0.0f;
     return color;
 }
 
