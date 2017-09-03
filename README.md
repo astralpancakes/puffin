@@ -1,5 +1,5 @@
 ![Puffin Logo](logo.png)
-#Puffin: an OpenGL helper library written in C
+# Puffin: an OpenGL helper library written in C
 
 I started Puffin in 2010 as a project to teach myself "modern" OpenGL and how to approximate object-oriented design in plain C. 
 My interest tapered off around 2012, but in late 2016 I picked it up again and slowly started dusting it off and correcting some of the bugs and design mishaps with fresh eyes and deeper undestanding. 
@@ -9,7 +9,7 @@ I based my attempt on GLUT and GLEW to get the OpenGL part going, but otherwise 
 The design of Puffin is a reflection of my experience as a 3D artist and the level of abstraction at which I'm used to thinking. Beyond the learning experience I hope and expect that it'll find use as a rapid prototyping platform for small programs and experiments, at least for myself. Partly to reflect that, I ripped off the setup() and draw() functions from Processing.org, although I'm definitely aiming for something more compact.
 
 
-##Puffin currently knows how to:
+## Puffin currently knows how to:
 * Create a window and a camera. Multiple cameras and maybe even multiple windows should work, but haven't been tested.
 * Loading 3D meshes in OBJ format, RGB or RGBA (8 bits per channel) textures in BMP format and shader code in plain text.
 * Move, rotate and scale meshes and move and rotate cameras.
@@ -20,16 +20,16 @@ The design of Puffin is a reflection of my experience as a 3D artist and the lev
 Rudimentary support that hasn't been tested in a long time exists for setting and getting pixel values from textures.
 
 
-##Required libraries:
+## Required libraries:
 * GLEW
 * FreeGLUT
 
 
-##Compiles and has been tested to work on:
+## Compiles and has been tested to work on:
 * Microsoft Windows 7 with NVIDIA drivers using MinGW
 
 
-##TODO:
+## TODO:
 
 * delete lots of code that's just commented out
 * document the example better
