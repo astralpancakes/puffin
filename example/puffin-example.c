@@ -82,9 +82,8 @@ int main(int argc, char** argv)
 
 void setup()
 {
-	pufInit(&window,1280,720,60,"Puffin Example");
+	window = pufInit(1280,720,60,"Puffin Example");
 	pufCameraInit(&window, &camera, 50.0f, 0.1f, 100.0f);
-	//pufCameraTranslate(&camera,0.0f,0.0f,5.0f);
 	
 	pufMeshInit(&cubeMesh);
 	pufMeshInit(&framebufferMesh);
@@ -96,9 +95,8 @@ void setup()
 	pufTextureCreate(&framebufferTexture,1280,720);
 	
 	pufMeshTranslate(&cubeMesh,0.0f,0.0f,-1.0f);
+	pufMeshRotateEuler(&cubeMesh,0.0f,0.0f,-55.0f,DEGREES);
 
-	pufCameraRotateEulerDegrees(&camera,0.0f,0.0f,-55.0f);
-	
 	pufShaderLoad(&cubeShader, "../meshVert.glsl", "../meshFrag.glsl");
 	pufShaderLoad(&framebufferShader, "../framebufferVert.glsl", "../framebufferFrag.glsl");
 	
@@ -121,5 +119,5 @@ void draw()
 	pufUpdate(&window);
 
 	if (!isPaused)
-		pufMeshRotateEulerDegrees(&cubeMesh,-0.5f,0.0f,0.0f);
+		pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
 }

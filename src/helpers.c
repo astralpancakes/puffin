@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+#include "helpers.h"
 
 char* pufReadFile(char const* file)
 {

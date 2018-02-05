@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
+#include "helpers.h"
+
+
 typedef struct {
 	unsigned int windowHeight;
 	unsigned int windowWidth;
@@ -95,14 +98,40 @@ typedef struct
 }
 PUFcamera;
 
-void pufInit(PUFwindow* window, int windowWidth, int windowHeight, int framerate, const char * windowTitle);
+//Generic 4D vector
+typedef struct {
+    double x;
+    double y;
+    double z;
+    double w;
+} PUFvector;
+
+//Generic Euler angle
+typedef struct {
+    double x;
+    double y;
+    double z;
+} PUFangle;
+
+typedef enum {
+    DEGREES,
+    RADIANS
+} PUF_ANGLE_UNITS;
+
+typedef enum {
+    OBJECT,
+    WORLD
+} PUF_COORDINATE_SPACE;
+
+PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
+
+PUFwindow pufInit(int windowWidth, int windowHeight, int framerate, const char * windowTitle);
 void pufIdle(void);
 void pufRun();
 void pufUpdate(PUFwindow* window);
 
 void pufKeyboardCallback(void (*func)(unsigned char, int, int));
 void pufPointerMotionCallback(PUFwindow* window, void (*func)(float,float,float,float));
-void pufWindowResize(int windowWidth, int windowHeight);
 
 void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearClip, float farClip);
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z);
@@ -117,15 +146,15 @@ void pufMeshBind(PUFmesh* mesh);
 void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader);
 
 void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z);
-void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ);
-void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ);
+void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ, PUF_ANGLE_UNITS units);
+void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ, PUF_ANGLE_UNITS units);
 void pufMeshRotateEulerDegrees(PUFmesh* mesh, float angleX, float angleY, float angleZ);
 void pufMeshScale(PUFmesh* mesh, float X,float Y,float Z);
 
 void pufMeshDestroy(PUFmesh* mesh);
 
 void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char const* fragmentShaderSourceFile); // loads shader from source files
-void pufShaderUnwieldy(PUFshader* shader,char const* vertexShaderSource,char const* fragmentShaderSource); // creates shader from code typed into function parameter
+void pufShaderCreate(PUFshader* shader,char const* vertexShaderSource,char const* fragmentShaderSource); // creates shader from code typed into function parameter
 
 void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);
 

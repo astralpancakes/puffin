@@ -1,0 +1,17 @@
+- Install MinGW from mingw.org (direct link: https://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe/download)
+
+- Use the MinGW Installation Manager to install the package mingw32-base
+
+- Add MinGW to PATH (eg. add the user variable PATH = C:\MinGW\bin;%PATH% under System -> Advanced -> Environment Variables...
+
+(- Install Git for Windows, use all default options in the installer except remove Shell Integration and add auto updates)
+
+- Build GLEW for MinGW using build_glew_mingw.bat or otherwise
+
+- Copy GLEW headers (include\GL\*.h) into MinGW includes (eg. C:\MinGW\include\GL) and GLEW libs (lib\*.a) into MinGW libs (eg. C:\MinGW\lib)
+
+- Copy GLEW dll's into executable direcory
+
+- Download freeglut-MinGW binaries from https://www.transmissionzero.co.uk/computing/using-glut-with-mingw/ or build from the source at https://github.com/TransmissionZero/freeglut-MinGW
+
+- Copy freeglut headers, libs and dll as above

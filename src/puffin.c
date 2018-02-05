@@ -18,13 +18,33 @@ void pufKeyboard(unsigned char key, int x, int y);
 void pufSpecialKeys(int specialkey, int x, int y);
 void pufWindowResize(int, int);
 
-void pufInit(PUFwindow* window, int windowWidth, int windowHeight, int framerate, const char* windowTitle)
+PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
 {
+
+    if (units == DEGREES)
+    {
+        pitch = pitch * M_PI / 180.0f;
+        yaw = yaw * M_PI / 180.0f;
+    }
+
+    PUFvector vector;
+
+    vector.x = cos(pitch)*sin(yaw);
+    vector.y = sin(pitch);
+    vector.z = cos(yaw)*cos(pitch);
+    vector.w = 0.0;
+
+    return vector;
+}
+
+PUFwindow pufInit(int windowWidth, int windowHeight, int framerate, const char* windowTitle)
+{
+    PUFwindow window;
 	if (windowHeight == 0)	// prevent divide by zero etc
         windowHeight = 1;
-    window->windowHeight = windowHeight;
-    window->windowWidth = windowWidth;
-    window->frameRate = framerate;
+    window.windowHeight = windowHeight;
+    window.windowWidth = windowWidth;
+    window.frameRate = framerate;
 	int arghc = 0;
     char* arghv;
     glutInit(&arghc, &arghv);
@@ -32,9 +52,9 @@ void pufInit(PUFwindow* window, int windowWidth, int windowHeight, int framerate
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
     glEnable(GL_MULTISAMPLE);
     glutInitWindowSize(windowWidth, windowHeight);
-    window->windowID = glutCreateWindow(windowTitle);
+    window.windowID = glutCreateWindow(windowTitle);
     
-    if (window->windowID == 1) // special functions will apply to the first created window
+    if (window.windowID == 1) // special functions will apply to the first created window
     {
         glutDisplayFunc(draw);
         glutIdleFunc(NULL);
@@ -46,14 +66,16 @@ void pufInit(PUFwindow* window, int windowWidth, int windowHeight, int framerate
 
     glewInit();
 	
-	window->glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[0]);
-	window->glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[2]); 
+	window.glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[0]);
+	window.glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[2]); 
 /* 
     window->frameCounter = 0;
     window->frameDelay = 0;    
     window->frameTick = 0;
 */
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+
+    return window;
 }
 
 void pufKeyboard(unsigned char key, int x, int y)
@@ -547,15 +569,24 @@ void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z) //translates Puf
 	//pufMatrixMult(pufMatrixTranslate(X,Y,Z,tempMatrix),memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),mesh->modelView);
 }
 
-void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ) //rotates Puffin mesh by a specified (in radians) XYZ (Euler) angle
+void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ, PUF_ANGLE_UNITS units) //rotates Puffin mesh by a specified (in radians) XYZ (Euler) angle
 {
-    /*
+
+    //convert angles to radians
+    if (units == DEGREES)
+    {
+        angleX = angleX * M_PI / 180.0f;
+        angleY = angleY * M_PI / 180.0f;
+        angleZ = angleZ * M_PI / 180.0f;
+    }
+
+
 	//normalize angle
-	float magnitude = sqrt((angleX*angleX) + (angleY*angleY) + (angleZ*angleZ));
-	angleX = angleX/magnitude;
-	angleY = angleY/magnitude;
-	angleZ = angleZ/magnitude;
-*/
+	//float magnitude = sqrt((angleX*angleX) + (angleY*angleY) + (angleZ*angleZ));
+	//angleX = angleX/magnitude;
+	//angleY = angleY/magnitude;
+	//angleZ = angleZ/magnitude;
+
     //convert normalized angle to quaternion rotation
     double t0 = cos(angleZ * 0.5);
 	double t1 = sin(angleZ * 0.5);
@@ -631,10 +662,17 @@ void pufMeshRotateEulerDegrees(PUFmesh* mesh, float angleX, float angleY, float 
 
 }
 
-void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ) //rotates Puffin mesh about vector by angle specified in radians
+void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ, PUF_ANGLE_UNITS units) //rotates Puffin mesh about vector by angle
 {
+
 	if (angle != 0.0)
 	{
+            //convert angles to radians
+        if (units == DEGREES)
+        {
+            angle = angle * M_PI / 180.0f;
+        }
+
 		if (vectorX != 0.0 || vectorY != 0.0 || vectorZ != 0.0)
 		{
 			float magnitude;
@@ -746,7 +784,7 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 
 } 
 
-void pufShaderUnwieldy(PUFshader* shader, char const* vertexShaderSource, char const* fragmentShaderSource)
+void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char const* fragmentShaderSource)
 {
 
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
