@@ -45,7 +45,6 @@ Rudimentary support that hasn't been tested in a long time exists for setting an
 * make pufInit(), pufCameraInit(), ... return their type (RATIONALE: mesh = pufMeshInit() rather than pufMeshInit(&mesh) makes it easier to spot where the mesh is first used in a piece of code)
 * make pufMeshLoadOBJ, pufMeshShapeQuad(), etc mesh creators and loaders call pufMeshInit() so that You don't have to!
 * figure out what to do with PUFcolor. Possibly remove.
-* figure out why linking against freeglut.dll with MinGW gives errors. Build your own freeglut and GLEW with MinGW.
 * make the same transform functions work with both PUFmesh and PUFcamera (make them take a void pointer and fiddle the correct place in the structs based on that)?
 * conform to C90 (replace variable length arrays with malloc() bits, etc) to satisfy Visual Studio?
 * should GLUT's Idle Function be used for something?
