@@ -31,20 +31,21 @@ Rudimentary support that hasn't been tested in a long time exists for setting an
 
 ## TODO:
 
-* Clean up pufMeshRender(). Delete lots of code that's just commented out, make the transformation matrix calculations nicer.
-* Add world space transforms. Currently all transforms are object space only. Passing WORLD or OBJECT to a transformation function should determine which one is used. To transform an object in world space, make a transformation matrix from the current object coordinates and transform the input using that.
-* Hook up some external libraries. At a minimum: libpng, some joystick library, some capture device library (probably OpenCV)
-* Move some stuff out of puffin.c and generally reorganize.
-* Don't use OpenGL types like GLint, GLfloat, except maybe in OpenGL-specific code. 
-* document the example better
-* compile on Mac and Linux
+* better error handling, make a thing for displaying OpenGL errors
+* compile with MSVC++
+* swap out freeglut for GLFW (to avoid X11 on macOS, etc)
+* compile on macOS
+* separate mesh, camera, texture etc things out into their own files, #include them all into puffin.c
+* stop using OpenGL types, start using stdint
 * Look into frame rate limiting. Does it work right now or does it merely seem like it works? Is there a cleaner way. How can we best measure and display the frame rate?
-* make sure it's really easy to set up a full screen quad with one or more textures and do stuff to them on both the shader and the GPU (think: an up to date, multiplatform replacement for TinyPTC)
-* do normal matrix inverse and transpose on the CPU instead of in the vertex shader
-* move texture functions into their own file
+* Clean up pufMeshRender() and matrix.c. Make the transformation matrix calculations nicer.
 * make pufInit(), pufCameraInit(), ... return their type (RATIONALE: mesh = pufMeshInit() rather than pufMeshInit(&mesh) makes it easier to spot where the mesh is first used in a piece of code)
+* Hook up some external libraries. At a minimum we want: 
+    - joystick (GLFW)
+    - some additional image formats (stb_image)
+    - capture device (OpenCV)
+    - UI (nuklear)
 * make pufMeshLoadOBJ, pufMeshShapeQuad(), etc mesh creators and loaders call pufMeshInit() so that You don't have to!
-* figure out what to do with PUFcolor. Possibly remove.
-* make the same transform functions work with both PUFmesh and PUFcamera (make them take a void pointer and fiddle the correct place in the structs based on that)?
-* conform to C90 (replace variable length arrays with malloc() bits, etc) to satisfy Visual Studio?
-* should GLUT's Idle Function be used for something?
+* Add world space transforms. Currently all transforms are object space only. Passing WORLD or OBJECT to a transformation function should determine which one is used. To transform an object in world space, make a transformation matrix from the current object coordinates and transform the input using that.
+* document the example better
+* compile on Linux

@@ -18,7 +18,7 @@ GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, GLfloat* M)
 
     if (X+Y+Z != 0)
     {
-        //normalize vector
+        // normalize vector
         float magnitude = sqrt((X*X) + (Y*Y) + (Z*Z));
         X = X/magnitude;
         Y = Y/magnitude;
@@ -51,10 +51,6 @@ GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, GLfloat* M)
     M[13] = 0.0;
     M[14] = 0.0;
     M[15] = 1.0;
-
-	/*
-	"Quaternions came from Hamilton after his really good work had been done; and, though beautifully ingenious, have been an unmixed evil to those who have touched them in any way" — Lord Kelvin, 1892.
-	*/
     
 	return M;
 }
@@ -101,7 +97,7 @@ GLfloat* pufMatrixRotateEuler(float angleX, float angleY, float angleZ, GLfloat*
 	float sZ = sin(angleZ);
 
 	float cXsY = cX*sY;
-	float sXsY = sX*sY; // south by southyeast
+	float sXsY = sX*sY;
 
     M[0] = cY * cZ;
     M[1] = sXsY*cZ + cX*sZ;
@@ -142,7 +138,8 @@ GLfloat* pufMatrixProjectPersp(float fov, float width, float height, float zNear
 {
 
 
-    fov = fov * M_PI / 180.0f; //assume fov given as degrees
+    // assume FOV given as degrees
+    fov = fov * M_PI / 180.0f;
 	
     GLfloat f = 1.0f/tan(fov/2.0f);
     GLfloat negDepth = zNear-zFar;
@@ -174,16 +171,18 @@ GLfloat* pufMatrixProjectOrtho(float width, float height, float zNear, float zFa
 
 GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
 {
-    for (int i=0; i<16; i+=4)
-        for (int j=0; j<4; j++)
+    int i, j;
+    for (i=0; i<16; i+=4)
+        for (j=0; j<4; j++)
             M[i+j] = A[j]*B[i] + A[j+4]*B[i+1] + A[j+8]*B[i+2] + A[j+12]*B[i+3];
     return M;
 }
 
 GLfloat* pufMatrixShrink(GLfloat* A,GLfloat* M)
 {
-    for (int i=0; i<3; i++)
-        for (int j=0; j<3; j++)
+    int i, j;
+    for (i=0; i<3; i++)
+        for (j=0; j<3; j++)
             M[i*3+j] = A[i*4+j];
     return M;
 }

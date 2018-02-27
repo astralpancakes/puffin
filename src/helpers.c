@@ -9,7 +9,7 @@ char* pufReadFile(char const* file)
   FILE* f;
   long len;
   char* s = 0;
-  // open file an get its length
+  // open file and get its length
   if (!(f = fopen(file, "r"))) goto readFileError1;
   fseek(f, 0, SEEK_END);
   len = ftell(f);

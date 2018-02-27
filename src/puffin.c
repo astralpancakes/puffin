@@ -8,12 +8,12 @@
 #include <stdio.h>
 #include <math.h>
 
-// special function prototypes
+/*** special function prototypes ***/
 void draw();
 void setup();
 void keyboard(unsigned char key, int specialKey, int x, int y);
 
-// prototypes for GLUT callbacks registered in pufInit
+/*** prototypes for GLUT callbacks registered in pufInit ***/
 void pufKeyboard(unsigned char key, int x, int y);
 void pufSpecialKeys(int specialkey, int x, int y);
 void pufWindowResize(int, int);
@@ -50,18 +50,17 @@ PUFwindow pufInit(int windowWidth, int windowHeight, int framerate, const char* 
     glutInit(&arghc, &arghv);
     
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
-    glEnable(GL_MULTISAMPLE);
     glutInitWindowSize(windowWidth, windowHeight);
     window.windowID = glutCreateWindow(windowTitle);
+    glEnable(GL_MULTISAMPLE);
     
-    if (window.windowID == 1) // special functions will apply to the first created window
+    if (window.windowID == 1) // special functions will operate on the first created window
     {
         glutDisplayFunc(draw);
         glutIdleFunc(NULL);
         glutReshapeFunc(pufWindowResize);
         glutKeyboardFunc(pufKeyboard);
         glutSpecialFunc(pufSpecialKeys);
-        //glutFullScreen();
     }
 
     glewInit();
@@ -153,7 +152,8 @@ void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearCl
     else
         pufMatrixProjectPersp(fov, camera->width, camera->height, nearClip, farClip, camera->projectionMatrix);
     
-    for (int i=0;i < 15; i++)
+    int i;
+    for (i=0;i < 15; i++)
 		camera->cameraMatrix[i] = 0.0f;
     
     camera->cameraMatrix[0] = 1.0f;
@@ -161,7 +161,7 @@ void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearCl
     camera->cameraMatrix[10] = 1.0f;
     camera->cameraMatrix[15] = 1.0f;
 	
-	for (int i=0;i < 15; i++)
+	for (i=0;i < 15; i++)
 		camera->translationMatrix[i] = 0.0f;
     
     camera->translationMatrix[0] = 1.0f;
@@ -169,20 +169,15 @@ void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearCl
     camera->translationMatrix[10] = 1.0f;
     camera->translationMatrix[15] = 1.0f;
 
-	for (int i=0; i<3; i++)
+	for (i=0; i<3; i++)
 		camera->cameraTranslation[i] = 0.0f;
-	for (int i=0; i<4; i++)
+	for (i=0; i<4; i++)
 		camera->cameraRotation[i] = 0.0f;
 	camera->cameraRotation[3] = 1.0f;
 }
 
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z)
 {
-    /*
-	GLfloat tempCameraMatrix[16];
-	GLfloat tempMatrix[16];
-	pufMatrixMult(pufMatrixTranslate(-vectorX,-vectorY,-vectorZ,tempMatrix),memcpy(tempCameraMatrix,camera->cameraMatrix,sizeof(GLfloat)*16),camera->cameraMatrix);
-    */
     camera->cameraTranslation[0] += X;
     camera->cameraTranslation[1] += Y;
     camera->cameraTranslation[2] += Z;
@@ -198,15 +193,14 @@ void pufCameraRotate(PUFcamera* camera, float angle, float vectorX, float vector
 			float normalizedX;
 			float normalizedY;
 			float normalizedZ;
-			
 
-			//normalize vector
+			// normalize vector
 			magnitude = sqrt((vectorX*vectorX) + (vectorY*vectorY) + (vectorZ*vectorZ));
 			normalizedX = vectorX/magnitude;
 			normalizedY = vectorY/magnitude;
 			normalizedZ = vectorZ/magnitude;
 
-			//convert euler angle to quaternion rotation
+			// convert euler angle to quaternion rotation
 			float sinAngle = sin(angle/2.0);
 			float cosAngle = cos(angle/2.0);
 			
@@ -215,19 +209,19 @@ void pufCameraRotate(PUFcamera* camera, float angle, float vectorX, float vector
 			float z1 = normalizedZ * sinAngle;
 			float w1 = cosAngle;
 
-			//get current rotation
+			// get current rotation
 			float x2 = camera->cameraRotation[0];
 			float y2 = camera->cameraRotation[1];
 			float z2 = camera->cameraRotation[2];
 			float w2 = camera->cameraRotation[3];
 
-			//multiply rotations
+			// multiply rotations
 			float x = (w1*x2) + (x1*w2) + (y1*z2) - (z1*y2);
 			float y = (w1*y2) + (y1*w2) + (z1*x2) - (x1*z2);
 			float z = (w1*z2) + (z1*w2) + (x1*y2) - (y1*x2);
 			float w = (w1*w2) - (x1*x2) - (y1*y2) - (z1*z2);
 			
-			//normalize and set result
+			// normalize and set result
 			magnitude = sqrt((x*x) + (y*y) + (z*z) + (w*w));
 			camera->cameraRotation[0] = x/magnitude;
 			camera->cameraRotation[1] = y/magnitude;
@@ -235,18 +229,12 @@ void pufCameraRotate(PUFcamera* camera, float angle, float vectorX, float vector
 			camera->cameraRotation[3] = w/magnitude;	
 		}
 	}
-    /*
-    GLfloat tempCameraMatrix[16];
-	GLfloat tempMatrix[16];
-
-    pufMatrixMult(memcpy(tempCameraMatrix,camera->cameraMatrix,sizeof(GLfloat)*16),pufMatrixRotate(angle,-vectorX,-vectorY,-vectorZ,tempMatrix),camera->cameraMatrix);
-    */
 }
 
-void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float angleZ) //rotates Puffin mesh by a specified (in radians) XYZ (Euler) angle
+void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float angleZ)
 {
 
-    //convert normalized angle to quaternion rotation
+    // convert normalized angle to quaternion rotation
     double t0 = cos(angleZ * 0.5);
 	double t1 = sin(angleZ * 0.5);
 	double t2 = cos(angleX * 0.5);
@@ -259,19 +247,19 @@ void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float a
 	double z1 = t1 * t2 * t4 - t0 * t3 * t5;
 	double w1 = t0 * t2 * t4 + t1 * t3 * t5;
 
-	//get current rotation
+	// get current rotation
     float x2 = camera->cameraRotation[0];
     float y2 = camera->cameraRotation[1];
     float z2 = camera->cameraRotation[2];
     float w2 = camera->cameraRotation[3];
 
-    //multiply rotations
+    // multiply rotations
     float x = (w1*x2) + (x1*w2) + (y1*z2) - (z1*y2);
     float y = (w1*y2) + (y1*w2) + (z1*x2) - (x1*z2);
     float z = (w1*z2) + (z1*w2) + (x1*y2) - (y1*x2);
     float w = (w1*w2) - (x1*x2) - (y1*y2) - (z1*z2);
     
-    //normalize and set result
+    // normalize and set result
     float magnitude = sqrt((x*x) + (y*y) + (z*z) + (w*w));
     camera->cameraRotation[0] = x/magnitude;
     camera->cameraRotation[1] = y/magnitude;
@@ -280,16 +268,16 @@ void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float a
 
 }
 
-void pufCameraRotateEulerDegrees(PUFcamera* camera, float angleX, float angleY, float angleZ) //rotates Puffin mesh by a specified (in degrees) XYZ (Euler) angle
+void pufCameraRotateEulerDegrees(PUFcamera* camera, float angleX, float angleY, float angleZ)
 {
     
 
-    //convert angles to radians
+    // convert angles to radians
     angleX = angleX * M_PI / 180.0f;
     angleY = angleY * M_PI / 180.0f;
     angleZ = angleZ * M_PI / 180.0f;
 
-    //convert angles to quaternion rotation
+    // convert angles to quaternion rotation
     double t0 = cos(angleZ * 0.5);
 	double t1 = sin(angleZ * 0.5);
 	double t2 = cos(angleX * 0.5);
@@ -302,19 +290,19 @@ void pufCameraRotateEulerDegrees(PUFcamera* camera, float angleX, float angleY, 
 	double z1 = t1 * t2 * t4 - t0 * t3 * t5;
 	double w1 = t0 * t2 * t4 + t1 * t3 * t5;
 
-	//get current rotation
+	// get current rotation
     float x2 = camera->cameraRotation[0];
     float y2 = camera->cameraRotation[1];
     float z2 = camera->cameraRotation[2];
     float w2 = camera->cameraRotation[3];
 
-    //multiply new and current rotations
+    // multiply new and current rotations
     float x = (w1*x2) + (x1*w2) + (y1*z2) - (z1*y2);
     float y = (w1*y2) + (y1*w2) + (z1*x2) - (x1*z2);
     float z = (w1*z2) + (z1*w2) + (x1*y2) - (y1*x2);
     float w = (w1*w2) - (x1*x2) - (y1*y2) - (z1*z2);
     
-    //normalize and set result
+    // normalize and set result
     float magnitude = sqrt((x*x) + (y*y) + (z*z) + (w*w));
     camera->cameraRotation[0] = x/magnitude;
     camera->cameraRotation[1] = y/magnitude;
@@ -323,27 +311,21 @@ void pufCameraRotateEulerDegrees(PUFcamera* camera, float angleX, float angleY, 
 
 }
 
-
-void pufMeshInit(PUFmesh* mesh) //zero the transformations of the mesh
+/* zero the transformations of the mesh */
+void pufMeshInit(PUFmesh* mesh) 
 {
-	for (int i=0; i<3; i++)
+    int i;
+	for (i=0; i<3; i++)
 		mesh->meshScale[i] = 1.0f;
-	for (int i=0; i<3; i++)
+	for (i=0; i<3; i++)
 		mesh->meshTranslation[i] = 0.0f;
-	for (int i=0; i<4; i++)
+	for (i=0; i<4; i++)
 		mesh->meshRotation[i] = 0.0f;
 	mesh->meshRotation[3] = 1.0f;
-/*
-	for (int i=0;i < 15; i++)
-		mesh->modelView[i] = 0.0f;
-    mesh->modelView[0] = 1.0f;
-    mesh->modelView[5] = 1.0f;
-    mesh->modelView[10] = 1.0f;
-    mesh->modelView[15] = 1.0f;
-*/    
 }
 
-void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
+/* generates a nicely generic quad */
+void pufMeshShapeQuad(PUFmesh* mesh)
 {
 	mesh->vertexCount = 6;
 	mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
@@ -389,7 +371,8 @@ void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
 	mesh->verts[5].texture[1] = 1.0f;
 	mesh->verts[5].texture[2] = 0.0f;
 	
-	for (int i=0;i<mesh->vertexCount;++i)
+    int i;
+	for (i=0;i<mesh->vertexCount;++i)
 	{
 		mesh->verts[i].color[0] = ((float)(rand() % 100))/100;
         mesh->verts[i].color[1] = (float)(rand() % 100)/100;
@@ -400,12 +383,14 @@ void pufMeshShapeQuad(PUFmesh* mesh) //generates a nicely generic quad
 	}
 }
 
-void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) //loads an OBJ file into Puffin mesh
+/* loads an OBJ file into Puffin mesh */
+void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) 
 {
     GLfloat* obj = pufLoadOBJ(file, &mesh->vertexCount);
     mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
 
-    for (int i=0;i<mesh->vertexCount;++i)
+    int i;
+    for (i=0;i<mesh->vertexCount;++i)
     {
         mesh->verts[i].position[0] = obj[i*9+0];
         mesh->verts[i].position[1] = obj[i*9+1];
@@ -423,7 +408,8 @@ void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) //loads an OBJ file into Pu
     free((void*)obj);
 }
 
-void pufMeshBind(PUFmesh* mesh) //uploads Puffin mesh vertex buffer object
+/* uploads Puffin mesh vertex buffer object */
+void pufMeshBind(PUFmesh* mesh) 
 {
 	glGenBuffers(1, &mesh->vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
@@ -431,7 +417,8 @@ void pufMeshBind(PUFmesh* mesh) //uploads Puffin mesh vertex buffer object
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
 }
 
-void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws Puffin mesh
+/* draws Puffin mesh */
+void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) 
 {
     glUseProgram(shader->shaderProgram);
 		
@@ -448,27 +435,14 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws 
     GLfloat modelviewMatrix[16];
 
     GLfloat modelviewProjectionMatrix[16];
-    //GLfloat modelviewCameraMatrix[16];
-	
-	//GLfloat tempModelView[16];
 
 	GLfloat tempMatrix[16];
     GLfloat translationMatrix[16];
     GLfloat scalingMatrix[16];
     GLfloat rotationMatrix[16];
-/*
-	for (int i=0;i < 15; i++)
-		mesh->modelView[i] = 0.0f;
-	
-    mesh->modelView[0] = 1.0f;
-    mesh->modelView[5] = 1.0f;
-    mesh->modelView[10] = 1.0f;
-    mesh->modelView[15] = 1.0f;
-*/
 
-// TODO: The following could be made clearer by calculating the matrices and multiplying them together as separate steps. Consider making the pufMatrix* functions not return anything since they need the return value pointer passed as an argument anyway.
-
-// Calculate model matrix
+// TODO: The following could be made clearer by calculating the matrices and multiplying them together as separate steps. 
+// Consider making the pufMatrix* functions not return anything since they need the return value pointer passed as an argument anyway.
 
     pufMatrixMult(
         pufMatrixTranslate(mesh->meshTranslation[0],mesh->meshTranslation[1],mesh->meshTranslation[2],translationMatrix),
@@ -488,18 +462,7 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws 
 
     pufMatrixMult(viewMatrix, modelMatrix, modelviewMatrix);
     pufMatrixMult(camera->projectionMatrix, modelviewMatrix, modelviewProjectionMatrix);
-/*
-	pufMatrixMult(
-        pufMatrixScale(mesh->meshScale[0],mesh->meshScale[1],mesh->meshScale[2],tempMatrix),
-        memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),
-        mesh->modelView);
-	pufMatrixMult(pufMatrixFromQuaternion(mesh->meshRotation[0],mesh->meshRotation[1],mesh->meshRotation[2],mesh->meshRotation[3],tempMatrix),memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),mesh->modelView);
-	pufMatrixMult(pufMatrixTranslate(mesh->meshTranslation[0],mesh->meshTranslation[1],mesh->meshTranslation[2],tempMatrix),memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),mesh->modelView);
-	
-	pufMatrixMult(camera->cameraMatrix, mesh->modelView, modelviewCameraMatrix);
 
-    pufMatrixMult(camera->projectionMatrix, modelviewCameraMatrix, modelviewProjectionMatrix);
-*/
     glUniformMatrix4fv(uniformModelviewProjectionMatrix, 1, GL_FALSE, modelviewProjectionMatrix);
     glUniformMatrix4fv(uniformModelViewMatrix, 1, GL_FALSE, modelviewMatrix);
     glUniformMatrix4fv(uniformModelMatrix, 1, GL_FALSE, modelMatrix);
@@ -508,22 +471,6 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws 
     glUniform1f(uniformRenderTargetHeight, (float)camera->height);
     glUniform2f(uniformRenderTargetSize, (float)camera->width, (float)camera->height);
     glUniform1f(uniformTime, (float)glutGet(GLUT_ELAPSED_TIME));
-
-    /*
-    GLint vertexPosition = glGetAttribLocation(shader->shaderProgram, "vertexPosition");
-    GLint vertexColor = glGetAttribLocation(shader->shaderProgram, "vertexColor");
-    GLint vertexTexture = glGetAttribLocation(shader->shaderProgram, "vertexTexture");
-    GLint vertexNormal = glGetAttribLocation(shader->shaderProgram, "vertexNormal");
-    GLint vertexMeta3f = glGetAttribLocation(shader->shaderProgram, "inMeta3f");
-    GLint vertexMeta1f = glGetAttribLocation(shader->shaderProgram, "inMeta1f");
-	
-    glEnableVertexAttribArray(vertexPosition);
-    glEnableVertexAttribArray(vertexColor);
-    glEnableVertexAttribArray(vertexTexture);
-    glEnableVertexAttribArray(vertexNormal);
-    glEnableVertexAttribArray(vertexMeta3f);
-    glEnableVertexAttribArray(vertexMeta1f);
-	*/
 	
 	glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -545,34 +492,25 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) //draws 
     glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
 		
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-	/*
-    glDisableVertexAttribArray(vertexMeta1f);
-    glDisableVertexAttribArray(vertexMeta3f);
-    glDisableVertexAttribArray(vertexNormal);
-    glDisableVertexAttribArray(vertexTexture);
-    glDisableVertexAttribArray(vertexColor);
-    glDisableVertexAttribArray(vertexPosition);
-    */
+
 	glUseProgram(0);
 	
 
 }
 
-void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z) //translates Puffin mesh
+/* translates Puffin mesh */
+void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z) 
 {
 	mesh->meshTranslation[0] += X;
 	mesh->meshTranslation[1] += Y;
 	mesh->meshTranslation[2] += Z;
-	//copy the existing mesh modelview matrix into tempModelView, ask for a new matrix for tempMatrix, then multiply them and put into mesh modelview
-	//GLfloat tempModelView[16];
-	//GLfloat tempMatrix[16];
-	//pufMatrixMult(pufMatrixTranslate(X,Y,Z,tempMatrix),memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),mesh->modelView);
 }
 
-void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ, PUF_ANGLE_UNITS units) //rotates Puffin mesh by a specified (in radians) XYZ (Euler) angle
+/* rotates Puffin mesh by a specified XYZ (Euler) angle */
+void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ, PUF_ANGLE_UNITS units) 
 {
 
-    //convert angles to radians
+    // convert angles to radians
     if (units == DEGREES)
     {
         angleX = angleX * M_PI / 180.0f;
@@ -580,14 +518,7 @@ void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ,
         angleZ = angleZ * M_PI / 180.0f;
     }
 
-
-	//normalize angle
-	//float magnitude = sqrt((angleX*angleX) + (angleY*angleY) + (angleZ*angleZ));
-	//angleX = angleX/magnitude;
-	//angleY = angleY/magnitude;
-	//angleZ = angleZ/magnitude;
-
-    //convert normalized angle to quaternion rotation
+    // convert normalized angle to quaternion rotation
     double t0 = cos(angleZ * 0.5);
 	double t1 = sin(angleZ * 0.5);
 	double t2 = cos(angleX * 0.5);
@@ -600,19 +531,19 @@ void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ,
 	double z1 = t1 * t2 * t4 - t0 * t3 * t5;
 	double w1 = t0 * t2 * t4 + t1 * t3 * t5;
 
-	//get current rotation
+	// get current rotation
     float x2 = mesh->meshRotation[0];
     float y2 = mesh->meshRotation[1];
     float z2 = mesh->meshRotation[2];
     float w2 = mesh->meshRotation[3];
 
-    //multiply rotations
+    // multiply rotations
     float x = (w1*x2) + (x1*w2) + (y1*z2) - (z1*y2);
     float y = (w1*y2) + (y1*w2) + (z1*x2) - (x1*z2);
     float z = (w1*z2) + (z1*w2) + (x1*y2) - (y1*x2);
     float w = (w1*w2) - (x1*x2) - (y1*y2) - (z1*z2);
     
-    //normalize and set result
+    // normalize and set result
     float magnitude = sqrt((x*x) + (y*y) + (z*z) + (w*w));
     mesh->meshRotation[0] = x/magnitude;
     mesh->meshRotation[1] = y/magnitude;
@@ -623,12 +554,12 @@ void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ,
 
 void pufMeshRotateEulerDegrees(PUFmesh* mesh, float angleX, float angleY, float angleZ) //rotates Puffin mesh by a specified (in degrees) XYZ (Euler) angle
 {
-    //convert angles to radians
+    // convert angles to radians
     angleX = angleX * M_PI / 180.0f;
     angleY = angleY * M_PI / 180.0f;
     angleZ = angleZ * M_PI / 180.0f;
 
-    //convert angles to quaternion rotation
+    // convert angles to quaternion rotation
     double t0 = cos(angleZ * 0.5);
 	double t1 = sin(angleZ * 0.5);
 	double t2 = cos(angleX * 0.5);
@@ -662,12 +593,13 @@ void pufMeshRotateEulerDegrees(PUFmesh* mesh, float angleX, float angleY, float 
 
 }
 
-void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ, PUF_ANGLE_UNITS units) //rotates Puffin mesh about vector by angle
+/* rotates Puffin mesh about vector by angle */
+void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ, PUF_ANGLE_UNITS units) 
 {
 
 	if (angle != 0.0)
 	{
-            //convert angles to radians
+        // convert angles to radians
         if (units == DEGREES)
         {
             angle = angle * M_PI / 180.0f;
@@ -681,13 +613,13 @@ void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, flo
 			float normalizedZ;
 			
 
-			//normalize vector
+			// normalize vector
 			magnitude = sqrt((vectorX*vectorX) + (vectorY*vectorY) + (vectorZ*vectorZ));
 			normalizedX = vectorX/magnitude;
 			normalizedY = vectorY/magnitude;
 			normalizedZ = vectorZ/magnitude;
 
-			//convert euler angle to quaternion rotation
+			// convert euler angle to quaternion rotation
 			float sinAngle = sin(angle/2.0);
 			float cosAngle = cos(angle/2.0);
 			
@@ -696,19 +628,19 @@ void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, flo
 			float z1 = normalizedZ * sinAngle;
 			float w1 = cosAngle;
 
-			//get current rotation
+			// get current rotation
 			float x2 = mesh->meshRotation[0];
 			float y2 = mesh->meshRotation[1];
 			float z2 = mesh->meshRotation[2];
 			float w2 = mesh->meshRotation[3];
 
-			//multiply rotations
+			// multiply rotations
 			float x = (w1*x2) + (x1*w2) + (y1*z2) - (z1*y2);
 			float y = (w1*y2) + (y1*w2) + (z1*x2) - (x1*z2);
 			float z = (w1*z2) + (z1*w2) + (x1*y2) - (y1*x2);
 			float w = (w1*w2) - (x1*x2) - (y1*y2) - (z1*z2);
 			
-			//normalize and set result
+			// normalize and set result
 			magnitude = sqrt((x*x) + (y*y) + (z*z) + (w*w));
 			mesh->meshRotation[0] = x/magnitude;
 			mesh->meshRotation[1] = y/magnitude;
@@ -716,50 +648,25 @@ void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, flo
 			mesh->meshRotation[3] = w/magnitude;	
 		}
 	}
-	/*
-	// set rotation directly
-    
-	//normalize vector
-    float magnitude = sqrt((vectorX*vectorX) + (vectorY*vectorY) + (vectorZ*vectorZ));
-    float X = vectorX/magnitude;
-    float Y = vectorY/magnitude;
-    float Z = vectorZ/magnitude;
-	
-	float sinAngle = sin(angle/2.0);
-	float cosAngle = cos(angle/2.0);
-	
-	mesh->meshRotation[0] = X * sinAngle;
-	mesh->meshRotation[1] = Y * sinAngle;
-	mesh->meshRotation[2] = Z * sinAngle;
-	mesh->meshRotation[3] = cosAngle;	
-	*/
-	
-	//tweak matrix
-    /*
-	GLfloat tempModelView[16];
-	GLfloat tempMatrix[16];
-    pufMatrixMult(memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),pufMatrixRotate(angle,vectorX,vectorY,vectorZ,tempMatrix),mesh->modelView);
-	*/
+
 }
 
-void pufMeshScale(PUFmesh* mesh, float X, float Y, float Z) //scales Puffin mesh
+/* scales Puffin mesh */
+void pufMeshScale(PUFmesh* mesh, float X, float Y, float Z) 
 {
-	mesh->meshScale[0] = X;
-	mesh->meshScale[1] = Y;
-	mesh->meshScale[2] = Z;
-	/*
-	GLfloat tempModelView[16];
-	GLfloat tempMatrix[16];
-    pufMatrixMult(pufMatrixScale(X,Y,Z,tempMatrix),memcpy(tempModelView,mesh->modelView,sizeof(GLfloat)*16),mesh->modelView);
-	*/
+	mesh->meshScale[0] *= X;
+	mesh->meshScale[1] *= Y;
+	mesh->meshScale[2] *= Z;
 }
 
-void pufMeshDestroy(PUFmesh* mesh) //deletes Puffin mesh
+ /* deletes Puffin mesh */
+void pufMeshDestroy(PUFmesh* mesh)
 {
     free((void*)mesh->verts);
 }
 
-void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile) //loads shader from GLSL source files, compiles and links shader program
+/* loads shader from GLSL source files, compiles and links shader program */
+void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
 {
 
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -823,7 +730,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
 {
     glGenTextures(1, &texture->textureId);
     
-    
+    int i, j;
     FILE* img = NULL;
     if ((img = fopen(file,"rb")))
     {
@@ -839,10 +746,10 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         fread(&pixelBits,2,1,img);
         GLint pixelBytes = pixelBits/8;
         
-        if (pixelBytes != 4 & pixelBytes != 3)
+        if ((pixelBytes != 4) & (pixelBytes != 3))
         {
             printf("Puffin BMP loader found that %s does not use 32 or 24 bits per pixel. This wasn't expected.\n", file);
-            printf("Bytes per pixel: %li\n",pixelBytes);
+            printf("Bytes per pixel: %i\n",pixelBytes);
         }
 		/*
         printf("Puffin BMP loader opened file %s\n",file);
@@ -858,9 +765,10 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         texture->pixels = (GLfloat*)malloc(texture->height*texture->width*4*sizeof(GL_FLOAT));
         
         fseek(img,pixelDataStartingOffset,SEEK_SET);	// start reading image data
-        for(int i = 0;i<texture->height;i++) // for each row...
+        
+        for(i = 0;i<texture->height;i++) // for each row...
         {
-            for(int j = 0;j<texture->width;j++) // for each pixel...
+            for(j = 0;j<texture->width;j++) // for each pixel...
                 fread(tempBuffer+(i*texture->width*pixelBytes+j*pixelBytes),pixelBytes,1,img); // read it...
             if ((texture->width*pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
                 fseek(img,4 - ((texture->width*pixelBytes) % 4), SEEK_CUR);
@@ -869,7 +777,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         fclose(img);
         
 
-        for (int i=0; i < texture->width*texture->height; i++)
+        for (i=0; i < texture->width*texture->height; i++)
         {
         /* BMP files are stored with the pixel data as ABGR (32 bits per pixel) or BGR (24 bits per pixel). 
         We want puffin textures to be RGBA, so we do some twiddling when we copy the pixel data.
@@ -895,14 +803,14 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
         free((void*)tempBuffer);
         
     }
-    else // failed to open file, let's make the texture solid yellow instead
+    else /* failed to open file, let's make the texture solid yellow instead */
     {
         printf("Puffin BMP loader failed to open file %s\n",file);
         texture->width = 1;
         texture->height = 1;
         texture->pixels = (GLfloat*)malloc(texture->height*texture->width*4*sizeof(GL_FLOAT));
         texture->pixels[0] = 0.0f;
-		for (int i = 1;i<4;i++)
+		for (i = 1;i<4;i++)
             texture->pixels[i] = 1.0f;
     }
     
@@ -997,12 +905,14 @@ PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y)
     return color;
 }
 
-void pufTextureClear(PUFtexture* texture) //clears a Puffin texture
+/* clears a Puffin texture */
+void pufTextureClear(PUFtexture* texture)
 {
     memset(texture->pixels, 0, texture->width*texture->height*4*sizeof(GL_FLOAT));
 }
 
-void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin texture, and updates OpenGL texture map 
+/* binds pixel buffer object of Puffin texture, and updates OpenGL texture map */
+void pufTextureUpdate(PUFtexture* texture) 
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture->pixelBuffer);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, texture->width*texture->height*4*sizeof(GL_FLOAT), NULL,GL_STATIC_DRAW);
@@ -1015,12 +925,14 @@ void pufTextureUpdate(PUFtexture* texture) //binds pixel buffer object of Puffin
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-void pufTextureBind(PUFtexture* texture) //binds Puffin texture for use
+/* binds Puffin texture for use */
+void pufTextureBind(PUFtexture* texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
 }
 
-void pufTextureDestroy(PUFtexture* texture) //deletes Puffin texture
+/* deletes Puffin texture */
+void pufTextureDestroy(PUFtexture* texture)
 {
     free((void*)texture->pixels);
 }
@@ -1037,35 +949,26 @@ void pufFramebufferInit(PUFframebuffer* framebuffer)
 void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture)
 {
 	//texture stuff
-//    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture->textureId);
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
-    //glPixelStorei(GL_UNPACK_ALIGNMENT,1);
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,0); 
-    //glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,1,GL_RGBA32F,texture->width,texture->height,0);
-
     
 	//framebuffer stuff
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture->textureId, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->textureId, 0);
 	//depth buffer stuff
 	
     glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texture->width, texture->height);
-//    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, texture->width, texture->height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer->depthbufferId);
-    
-	//GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-	//glDrawBuffers(1, DrawBuffers);
+
 	
 	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		printf("Alert!",0);
+		printf("Alert!");
 	
 	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

@@ -77,6 +77,7 @@ void keyboard(unsigned char key, int specialKey, int x, int y)
 int main(int argc, char** argv)
 {
 	pufRun();
+	return 0;
 }
 
 

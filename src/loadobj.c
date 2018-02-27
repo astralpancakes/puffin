@@ -7,25 +7,26 @@
 
 GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
 {
-    FILE* f; // FILE object
+    FILE* f;
     int vertexCounter = 0;
     
-    if((f = fopen(name, "r"))) //file opened successfully
+    if((f = fopen(name, "r"))) // file opened successfully
     {
 
         //printf("Puffin OBJ loader loading file %s...\n", name);
 
-        
-        int a,b,c;  //temporary variables for scanf
+        // temporary variables for scanf
+        int a,b,c;  
         float f1,f2,f3;
         int d1,d2,d3,d4,d5,d6,d7,d8,d9;
-        int vCount = 0; //vertex counter
-        int nCount = 0; //vertex normal counter
-        int tCount = 0; //vertex texture counter
-        int fCount = 0; //face counter
+        // vertex/normal/texcoord/face counters
+        int vCount = 0;
+        int nCount = 0;
+        int tCount = 0;
+        int fCount = 0;
         char buffer[256] = {0};
 
-/* Do a first pass scan through the OBJ file and count the vertex, normal and texture coordinates and faces */
+// Do a first pass scan through the OBJ file and count the vertex, normal and texture coordinates and faces
 
         while (fscanf(f,"%s", buffer) != EOF)
         {
@@ -48,7 +49,7 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                 case 'f': // found a f, for face
                     switch (buffer[1])
                     {
-                        case '\0':   //check the next character to make sure it's null and nothing weird
+                        case '\0':   // check the next character to make sure it's null and nothing weird
                             fscanf(f,"%s", buffer); // scan forward, then check what we scanned...
                             if (strstr(buffer, "//")) // if strstr() does not return NULL we found //, which means the next coordinates are of the format v//vn
                             {
@@ -97,7 +98,7 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                     break;
             }
         }
-        rewind(f); // PULL UP! PULL UP MY SELECTOR!
+        rewind(f); // PULL UP MY SELECTOR!
 
         GLfloat vertexList[vCount][3];  // make an array for our vertices, three coordinates for each
 
@@ -129,14 +130,14 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
         //printf("Vertices: %i\n",vCount);
         //printf("Triangles: %i\n",fCount);
 
-    /* Scan through file a second time, reading... 
-        - vertex coords into vertexList, 
-        - vertex texture coords into texList, 
-        - vertex normals into normalList, 
-        - triangle vertex value indices into faceList, 
-        - triangle normal value indices faceNormals and 
-        - triangle textures value indices into faceTex
-    */
+        // Scan through file a second time, reading... 
+        // - vertex coords into vertexList, 
+        // - vertex texture coords into texList, 
+        // - vertex normals into normalList, 
+        // - triangle vertex value indices into faceList, 
+        // - triangle normal value indices faceNormals and 
+        // - triangle textures value indices into faceTex
+
         int i = 0;
         int j = 0;
         int k = 0;
@@ -198,7 +199,7 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                             fscanf(f,"%s", buffer);
                             if (strstr(buffer, "//")) // v//vn
                             {
-                                //read face and normal indices from buffer, make the texture indices zero
+                                // read face and normal indices from buffer, make the texture indices zero
                                 sscanf(buffer,"%d//%d",&d1,&d7);
                                 fscanf(f,"%d//%d",&d2,&d8);
                                 fscanf(f,"%d//%d",&d3,&d9);
@@ -391,12 +392,12 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
 /* Combine all the previously created list into a big list of vertex, texture and normal coordinates for each face. This is pretty hairy... */
 
         static GLfloat* combinedList;
-        combinedList = (GLfloat*)malloc(sizeof(GLfloat)*(fCount*3*3*3)); //every triangle has 3 vertices * pos, normal, UV  * 3 coordinates
-        //combinedList = new GLfloat[fCount*3*3*3];
+        combinedList = (GLfloat*)malloc(sizeof(GLfloat)*(fCount*3*3*3)); // every triangle has 3 vertices * pos/normal/UV  * 3 coordinates
 
         for (i=0; i < fCount; i++)  // for each face...
         {
-            for(int j = 0; j < 3; j++) // ...and each vertex in that face...
+            int j;
+            for(j = 0; j < 3; j++) // ...and each vertex in that face...
             {
                 // ...write all the coordinates
                 combinedList[i*27+j*9+0] = vertexList[faceList[i][j]-1][0];
@@ -408,14 +409,7 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                 combinedList[i*27+j*9+6] = normalList[faceNormals[i][j]-1][0];
                 combinedList[i*27+j*9+7] = normalList[faceNormals[i][j]-1][1];
                 combinedList[i*27+j*9+8] = normalList[faceNormals[i][j]-1][2];
-                vertexCounter++;
-
-				/*
-				printf("f%i-v%i: %f,%f,%f\n",i,j,combinedList[i*27+j*9+0],combinedList[i*27+j*9+1],combinedList[i*27+j*9+2]);
-                printf("f%i-t%i: %f,%f,%f\n",i,j,combinedList[i*27+j*9+3],combinedList[i*27+j*9+4],combinedList[i*27+j*9+5]);
-                printf("f%i-n%i: %f,%f,%f\n",i,j,combinedList[i*27+j*9+6],combinedList[i*27+j*9+7],combinedList[i*27+j*9+8]);
-				*/
-				
+                vertexCounter++;				
             }
 
         }
@@ -431,4 +425,3 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
 
 
 }
-
