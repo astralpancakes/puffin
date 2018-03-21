@@ -100,32 +100,40 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
         }
         rewind(f); // PULL UP MY SELECTOR!
 
-        GLfloat vertexList[vCount][3];  // make an array for our vertices, three coordinates for each
+        //GLfloat vertexList[vCount][3];  // make an array for our vertices, three coordinates for each
+        float* vertexList = (float*)malloc(vCount * 3 * sizeof(float));
 
         if (nCount == 0) // we need at least one set of normal coordinates, so we make sure we get some
             nCount = 1;
 
         // make an array for the normal coordinates, and set the first ones to zero (if there are any in the OBJ file, these will be overwritter)
-        GLfloat normalList[nCount][3]; 
-        normalList[0][0] = 0.0f;
-        normalList[0][1] = 0.0f;
-        normalList[0][2] = 0.0f;
+        //GLfloat normalList[nCount][3]; 
+        float* normalList = (float*)malloc(nCount * 3 * sizeof(float));
+
+        normalList[0] = 0.0f;
+        normalList[0+1] = 0.0f;
+        normalList[0+2] = 0.0f;
 
         if (tCount == 0) // we make sure we get some texture coordinates too
             tCount = 1;
 
         // and make an array for the texture coordinates, with the first ones set to zero, at least for now
         
-        GLfloat texList[tCount][3];
-        texList[0][0] = 0.0f;
-        texList[0][1] = 0.0f;
-        texList[0][2] = 0.0f;
+        //GLfloat texList[tCount][3];
+        float* texList = (float*)malloc(tCount * 3 * sizeof(float));
+        texList[0] = 0.0f;
+        texList[1] = 0.0f;
+        texList[2] = 0.0f;
 
         // make some arrays for reading in the coordinate indices for our faces
 
-        GLint faceList[fCount][3];
-        GLint faceTex[fCount][3];
-        GLint faceNormals[fCount][3];
+        int* faceList = (int*)malloc(fCount * 3 * sizeof(int));
+        int* faceTex = (int*)malloc(fCount * 3 * sizeof(int));
+        int* faceNormals = (int*)malloc(fCount * 3 * sizeof(int));
+
+        //GLint faceList[fCount][3];
+        //GLint faceTex[fCount][3];
+        //GLint faceNormals[fCount][3];
 
         //printf("Vertices: %i\n",vCount);
         //printf("Triangles: %i\n",fCount);
@@ -155,9 +163,9 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                             fscanf(f,"%f",&f1);
                             fscanf(f,"%f",&f2);
                             fscanf(f,"%f",&f3);
-                            vertexList[i][0] = f1;
-                            vertexList[i][1] = f2;
-                            vertexList[i][2] = f3;
+                            vertexList[i*3+0] = f1;
+                            vertexList[i*3+1] = f2;
+                            vertexList[i*3+2] = f3;
 
                             //printf("Vertex %i: %f, %f, %f\n", i, vertexList[i][0],vertexList[i][1],vertexList[i][2]);
 
@@ -168,9 +176,9 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                             fscanf(f,"%f",&f1);
                             fscanf(f,"%f",&f2);
                             fscanf(f,"%f",&f3);
-                            normalList[k][0] = f1;
-                            normalList[k][1] = f2;
-                            normalList[k][2] = f3;
+                            normalList[k*3+0] = f1;
+                            normalList[k*3+1] = f2;
+                            normalList[k*3+2] = f3;
 
 							//printf("Vertex normal %i: %f, %f, %f\n", k, normalList[k][0],normalList[k][1],normalList[k][2]);
 
@@ -181,9 +189,9 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                             fscanf(f,"%f",&f1);
                             fscanf(f,"%f",&f2);
                             //fscanf(f,"%f",&f3);
-                            texList[l][0] = f1;
-                            texList[l][1] = f2;
-                            texList[l][2] = 0.0f;
+                            texList[l*3+0] = f1;
+                            texList[l*3+1] = f2;
+                            texList[l*3+2] = 0.0f;
 
 							//printf("Vertex tex %i: %f, %f, %f\n", l, texList[l][0],texList[l][1],texList[l][2]);
 
@@ -203,15 +211,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 sscanf(buffer,"%d//%d",&d1,&d7);
                                 fscanf(f,"%d//%d",&d2,&d8);
                                 fscanf(f,"%d//%d",&d3,&d9);
-                                faceList[j][0] = d1;
-                                faceList[j][1] = d2;
-                                faceList[j][2] = d3;
-                                faceTex[j][0] = 0;
-                                faceTex[j][1] = 0;
-                                faceTex[j][2] = 0;
-                                faceNormals[j][0] = d7;
-                                faceNormals[j][1] = d8;
-                                faceNormals[j][2] = d9;
+                                faceList[j*3] = d1;
+                                faceList[j*3+1] = d2;
+                                faceList[j*3+2] = d3;
+                                faceTex[j*3+0] = 0;
+                                faceTex[j*3+1] = 0;
+                                faceTex[j*3+2] = 0;
+                                faceNormals[j*3+0] = d7;
+                                faceNormals[j*3+1] = d8;
+                                faceNormals[j*3+2] = d9;
 
 								/*
                                 printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
@@ -224,15 +232,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 // if there's a fourth set of index values, read that too
                                 while (fscanf(f,"%d//%d",&d2, &d8) == 2) 
                                 {
-                                    faceList[j][0] = d1;
-                                    faceList[j][1] = d3;
-                                    faceList[j][2] = d2;
-                                    faceTex[j][0] = 0;
-                                    faceTex[j][1] = 0;
-                                    faceTex[j][2] = 0;
-                                    faceNormals[j][0] = d7;
-                                    faceNormals[j][1] = d8;
-                                    faceNormals[j][2] = d9;
+                                    faceList[j*3] = d1;
+                                    faceList[j*3+1] = d3;
+                                    faceList[j*3+2] = d2;
+                                    faceTex[j*3+0] = 0;
+                                    faceTex[j*3+1] = 0;
+                                    faceTex[j*3+2] = 0;
+                                    faceNormals[j*3+0] = d7;
+                                    faceNormals[j*3+1] = d8;
+                                    faceNormals[j*3+2] = d9;
 
 									/*
 									printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
@@ -251,15 +259,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 sscanf(buffer,"%d/%d/%d",&d1,&d4,&d7);
                                 fscanf(f,"%d/%d/%d",&d2,&d5,&d8);
                                 fscanf(f,"%d/%d/%d",&d3,&d6,&d9);
-                                faceList[j][0] = d1;
-                                faceList[j][1] = d2;
-                                faceList[j][2] = d3;
-                                faceTex[j][0] = d4;
-                                faceTex[j][1] = d5;
-                                faceTex[j][2] = d6;
-                                faceNormals[j][0] = d7;
-                                faceNormals[j][1] = d8;
-                                faceNormals[j][2] = d9;
+                                faceList[j*3+0] = d1;
+                                faceList[j*3+1] = d2;
+                                faceList[j*3+2] = d3;
+                                faceTex[j*3+0] = d4;
+                                faceTex[j*3+1] = d5;
+                                faceTex[j*3+2] = d6;
+                                faceNormals[j*3+0] = d7;
+                                faceNormals[j*3+1] = d8;
+                                faceNormals[j*3+2] = d9;
 
 								/*
 								printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
@@ -272,15 +280,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 // and the fourth one too, if we find one
                                 while (fscanf(f,"%d/%d/%d",&d2,&d5, &d8) == 3)
                                 {
-                                    faceList[j][0] = d1;
-                                    faceList[j][1] = d3;
-                                    faceList[j][2] = d2;
-                                    faceTex[j][0] = d4;
-                                    faceTex[j][1] = d6;
-                                    faceTex[j][2] = d5;
-                                    faceNormals[j][0] = d7;
-                                    faceNormals[j][1] = d9;
-                                    faceNormals[j][2] = d8;
+                                    faceList[j*3+0] = d1;
+                                    faceList[j*3+1] = d3;
+                                    faceList[j*3+2] = d2;
+                                    faceTex[j*3+0] = d4;
+                                    faceTex[j*3+1] = d6;
+                                    faceTex[j*3+2] = d5;
+                                    faceNormals[j*3+0] = d7;
+                                    faceNormals[j*3+1] = d9;
+                                    faceNormals[j*3+2] = d8;
 
 									/*
 									printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
@@ -301,15 +309,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 sscanf(buffer,"%d/%d",&d1,&d4);
                                 fscanf(f,"%d/%d",&d2,&d5);
                                 fscanf(f,"%d/%d",&d3,&d6);
-                                faceList[j][0] = d1;
-                                faceList[j][1] = d2;
-                                faceList[j][2] = d3;
-                                faceTex[j][0] = d4;
-                                faceTex[j][1] = d5;
-                                faceTex[j][2] = d6;
-                                faceNormals[j][0] = 0;
-                                faceNormals[j][1] = 0;
-                                faceNormals[j][2] = 0;
+                                faceList[j*3+0] = d1;
+                                faceList[j*3+1] = d2;
+                                faceList[j*3+2] = d3;
+                                faceTex[j*3+0] = d4;
+                                faceTex[j*3+1] = d5;
+                                faceTex[j*3+2] = d6;
+                                faceNormals[j*3+0] = 0;
+                                faceNormals[j*3+1] = 0;
+                                faceNormals[j*3+2] = 0;
 
 								/*
                                 printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
@@ -321,15 +329,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 // and the fourth one, if it's there
                                 while (fscanf(f,"%d/%d",&d2,&d5) == 2)
                                 {
-                                    faceList[j][0] = d1;
-                                    faceList[j][1] = d3;
-                                    faceList[j][2] = d2;
-                                    faceTex[j][0] = d4;
-                                    faceTex[j][1] = d6;
-                                    faceTex[j][2] = d5;
-                                    faceNormals[j][0] = 0;
-                                    faceNormals[j][1] = 0;
-                                    faceNormals[j][2] = 0;
+                                    faceList[j*3+0] = d1;
+                                    faceList[j*3+1] = d3;
+                                    faceList[j*3+2] = d2;
+                                    faceTex[j*3+0] = d4;
+                                    faceTex[j*3+1] = d6;
+                                    faceTex[j*3+2] = d5;
+                                    faceNormals[j*3+0] = 0;
+                                    faceNormals[j*3+1] = 0;
+                                    faceNormals[j*3+2] = 0;
 
 									/*
 									printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
@@ -349,15 +357,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 sscanf(buffer,"%d",&d1);
                                 fscanf(f,"%d",&d2);
                                 fscanf(f,"%d",&d3);
-                                faceList[j][0] = d1;
-                                faceList[j][1] = d2;
-                                faceList[j][2] = d3;
-                                faceTex[j][0] = 0;
-                                faceTex[j][1] = 0;
-                                faceTex[j][2] = 0;
-                                faceNormals[j][0] = 0;
-                                faceNormals[j][1] = 0;
-                                faceNormals[j][2] = 0;
+                                faceList[j*3+0] = d1;
+                                faceList[j*3+1] = d2;
+                                faceList[j*3+2] = d3;
+                                faceTex[j*3+0] = 0;
+                                faceTex[j*3+1] = 0;
+                                faceTex[j*3+2] = 0;
+                                faceNormals[j*3+0] = 0;
+                                faceNormals[j*3+1] = 0;
+                                faceNormals[j*3+2] = 0;
 
 								//printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
 
@@ -366,15 +374,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
                                 // if the fourth one is there, read that also
                                 while (fscanf(f,"%d",&d2) == 1)
                                 {
-                                    faceList[j][0] = d1;
-                                    faceList[j][1] = d3;
-                                    faceList[j][2] = d2;
-                                    faceTex[j][0] = 0;
-                                    faceTex[j][1] = 0;
-                                    faceTex[j][2] = 0;
-                                    faceNormals[j][0] = 0;
-                                    faceNormals[j][1] = 0;
-                                    faceNormals[j][2] = 0;
+                                    faceList[j*3+0] = d1;
+                                    faceList[j*3+1] = d3;
+                                    faceList[j*3+2] = d2;
+                                    faceTex[j*3+0] = 0;
+                                    faceTex[j*3+1] = 0;
+                                    faceTex[j*3+2] = 0;
+                                    faceNormals[j*3+0] = 0;
+                                    faceNormals[j*3+1] = 0;
+                                    faceNormals[j*3+2] = 0;
 
 									//printf("Triangle %i: %d, %d, %d\n", j, faceList[j][0],faceList[j][1],faceList[j][2]);
 
@@ -400,15 +408,15 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
             for(j = 0; j < 3; j++) // ...and each vertex in that face...
             {
                 // ...write all the coordinates
-                combinedList[i*27+j*9+0] = vertexList[faceList[i][j]-1][0];
-                combinedList[i*27+j*9+1] = vertexList[faceList[i][j]-1][1];
-                combinedList[i*27+j*9+2] = vertexList[faceList[i][j]-1][2];
-                combinedList[i*27+j*9+3] = texList[faceTex[i][j]-1][0];
-                combinedList[i*27+j*9+4] = texList[faceTex[i][j]-1][1];
-                combinedList[i*27+j*9+5] = texList[faceTex[i][j]-1][2];
-                combinedList[i*27+j*9+6] = normalList[faceNormals[i][j]-1][0];
-                combinedList[i*27+j*9+7] = normalList[faceNormals[i][j]-1][1];
-                combinedList[i*27+j*9+8] = normalList[faceNormals[i][j]-1][2];
+                combinedList[i*27+j*9+0] = vertexList[(faceList[i*3+j]-1)*3+0];
+                combinedList[i*27+j*9+1] = vertexList[(faceList[i*3+j]-1)*3+1];
+                combinedList[i*27+j*9+2] = vertexList[(faceList[i*3+j]-1)*3+2];
+                combinedList[i*27+j*9+3] = texList[(faceTex[i*3+j]-1)*3+0];
+                combinedList[i*27+j*9+4] = texList[(faceTex[i*3+j]-1)*3+1];
+                combinedList[i*27+j*9+5] = texList[(faceTex[i*3+j]-1)*3+2];
+                combinedList[i*27+j*9+6] = normalList[(faceNormals[i*3+j]-1)*3+0];
+                combinedList[i*27+j*9+7] = normalList[(faceNormals[i*3+j]-1)*3+1];
+                combinedList[i*27+j*9+8] = normalList[(faceNormals[i*3+j]-1)*3+2];
                 vertexCounter++;				
             }
 
