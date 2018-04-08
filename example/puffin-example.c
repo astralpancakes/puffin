@@ -1,10 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <GL/glew.h>
-#include <GL/glut.h>
 #include "../src/puffin.h"
+#include <GLFW/glfw3.h>
 
-PUFwindow window;
+#include <stdio.h>
+
+GLFWwindow* window;
 
 PUFcamera camera;
 
@@ -19,72 +18,40 @@ PUFframebuffer framebuffer;
 
 int isPaused = 0;
 
-void keyboard(unsigned char key, int specialKey, int x, int y)
+
+int width = 1280   ;
+int height = 720;
+
+void draw_immidiate_triangle()
 {
 
-	// check keys by ASCII code
 
-	switch (key)
-	{
-		case 32:
-		{
-			if (isPaused)
-				isPaused = 0;
-			else
-				isPaused = 1;
-		} 
-	}
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 
-	// check special keys by GLUT's GLUT_KEY_* enums
+    glOrtho(-2.0,2.0,-2.0,2.0,0.1,10.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-	switch (specialKey)
-	{
-		case GLUT_KEY_F1:
-		{
-			if (isPaused)
-				isPaused = 0;
-			else
-				isPaused = 1;
-			break;
-		}
-		
-		case GLUT_KEY_UP:
-		{
-			pufCameraTranslate(&camera, 0.0f,0.0f,-0.15f);
-			break;
-		}
-		case GLUT_KEY_DOWN:
-		{
-			pufCameraTranslate(&camera, 0.0f,0.0f,0.15f);
-			break;
-		}
-		case GLUT_KEY_LEFT:
-		{
-			pufCameraTranslate(&camera, -0.15f,0.0f,0.0f);
-			break;
-		}
-		case GLUT_KEY_RIGHT:
-		{
-			pufCameraTranslate(&camera, 0.15f,0.0f,0.0f);
-			break;
-		}
-	}
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
 
-	// for modifier keys use glutGetModifiers
+    glTranslatef(0.0f,0.0f, -6.0f);
 
-}
-
-int main(int argc, char** argv)
-{
-	pufRun();
-	return 0;
+    glBegin(GL_TRIANGLES);
+        glColor3f(1.0f,1.0f,1.0f);
+        glVertex3f(0.0f,1.0f,0.0f);
+        glVertex3f(-1.0f,-1.0f,0.0f);
+        glVertex3f(1.0f,-1.0f,0.0f);
+    glEnd();
 }
 
 
 void setup()
 {
-	window = pufInit(1280,720,60,"Puffin Example");
-	pufCameraInit(&window, &camera, 50.0f, 0.1f, 100.0f);
+
+
+	pufCameraInit(&camera, 50.0f, 0.1f, 100.0f);
 	
 	pufMeshInit(&cubeMesh);
 	pufMeshInit(&framebufferMesh);
@@ -93,7 +60,7 @@ void setup()
 	pufMeshBind(&cubeMesh);
 	pufMeshBind(&framebufferMesh);
 	pufTextureLoadBMP(&cubeTexture, "../puffin.bmp");
-	pufTextureCreate(&framebufferTexture,1280,720);
+	pufTextureCreate(&framebufferTexture,width,height);
 	
 	pufMeshTranslate(&cubeMesh,0.0f,0.0f,-1.0f);
 	pufMeshRotateEuler(&cubeMesh,0.0f,0.0f,-55.0f,DEGREES);
@@ -105,20 +72,85 @@ void setup()
 	pufFramebufferTexture(&framebuffer,&framebufferTexture);
 
 	glClearColor(1,1,1,1); // Set the clear color white
+
 }
 
 void draw()
 {
-	
-	pufTextureBind(&cubeTexture);
-	pufFramebufferBindAndClear(&framebuffer);
-	pufMeshRender(&cubeMesh,&camera,&cubeShader);
-	pufFramebufferUnbind();
-	
-	pufTextureBind(&framebufferTexture);
-	pufMeshRender(&framebufferMesh,&camera,&framebufferShader);
-	pufUpdate(&window);
+        //draw_immidiate_triangle();
+        
+        pufTextureBind(&cubeTexture);
+	    
+        //pufFramebufferBindAndClear(&framebuffer);
 
-	if (!isPaused)
-		pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
+	    pufMeshRender(&cubeMesh,&camera,&cubeShader, &framebuffer);
+
+	    //pufFramebufferUnbind();
+	    
+        pufTextureBind(&framebufferTexture);
+
+        framebufferShader.uniformTime = glfwGetTime();    
+        pufMeshRender(&framebufferMesh,&camera,&framebufferShader, NULL);
+        pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
+	    /*
+        pufUpdate(&window);
+
+	    if (!isPaused)
+		    pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
+        */
+}
+
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "error: %s\n", description);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
+int main(int argc, char** argv)
+{
+    glfwSetErrorCallback(error_callback);
+
+    if (!glfwInit())
+    {/* error */}
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
+
+    window = glfwCreateWindow(width, height, "My Title", NULL, NULL);
+
+    if (!window)
+    {/* error */}
+    
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+    glfwSetKeyCallback(window, key_callback);
+    glewInit();
+
+    //glViewport(0,0,width,height);
+
+
+
+    setup();
+
+    while (!glfwWindowShouldClose(window))
+    {
+        glfwGetFramebufferSize(window, &width, &height);
+    
+        //draw_immidiate_triangle();
+        draw();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+        glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+
+
 }

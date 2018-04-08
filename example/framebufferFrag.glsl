@@ -11,7 +11,7 @@ out vec4 fragColor;
 
 uniform sampler2D textureSampler;
 uniform vec2 renderTargetSize;
-uniform float time;
+uniform float iTime;
 
 //TO DO: FXAA
 
@@ -20,11 +20,11 @@ float pseudoRand(vec2 seed)
    return fract(sin(dot(seed.xy,vec2(420.5432,25.223))) * 937212.23512);
 }
 
-vec3 grain(vec2 fragTexCoord, float time)
+vec3 grain(vec2 fragTexCoord, float iTime)
 {
     #define GRAIN_AMOUNT 0.15
     vec3 grain;
-    grain = vec3(pseudoRand(fragTexCoord*vec2(time))*GRAIN_AMOUNT);
+    grain = vec3(pseudoRand(fragTexCoord*vec2(iTime))*GRAIN_AMOUNT);
     return grain;
 }
 
@@ -65,7 +65,7 @@ void main()
     fragRGB = chromaticAberration(textureSampler, fragTexCoord);    
     fragRGB -= vignette(fragTexCoord);
     //fragRGB += vec3(rand(fragTexCoord*vec2(time))*0.15);
-    fragRGB += grain(fragTexCoord, time);
+    fragRGB += grain(fragTexCoord, iTime);
 
     fragColor = vec4(fragRGB, 1.0);
 

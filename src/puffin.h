@@ -2,10 +2,47 @@
 #define PUFFIN_H
 
 #include <GL/glew.h>
-#include <GL/glut.h>
 
 #include "helpers.h"
 
+//Generic 4D vector
+typedef struct {
+    double x;
+    double y;
+    double z;
+    double w;
+} PUFvec4;
+
+typedef PUFvec4 PUFvector;
+
+//Generic vec3 / Euler angle
+typedef struct {
+    double x;
+    double y;
+    double z;
+} PUFvec3;
+
+typedef PUFvec3 PUFangle;
+
+typedef struct {
+    float R;
+    float G;
+    float B;
+    float A;
+} PUFcolor;
+
+typedef float PUFmat4x4[16];
+typedef PUFmat4x4 PUFmatrix;
+
+typedef enum {
+    DEGREES,
+    RADIANS
+} PUF_ANGLE_UNITS;
+
+typedef enum {
+    OBJECT,
+    WORLD
+} PUF_COORDINATE_SPACE;
 
 typedef struct {
 	unsigned int windowHeight;
@@ -46,17 +83,22 @@ PUFmesh;
 typedef struct
 {
     GLuint shaderProgram;
+    
+    // Shader uniforms, these are supposed to be the same as in ShaderToy
+    // see https://shadertoyunofficial.wordpress.com/2016/07/20/special-shadertoy-features/ and https://www.shadertoy.com/howto
+
+    //PUFvec3 uniformResolution;
+    float uniformTime;
+    float uniformTimeDelta;
+    float uniformFrame;
+    float uniformChannelTime[4];
+    PUFvec4 uniformMouse;
+    PUFvec4 uniformDate;
+    float uniformSampleRate;
+    PUFvec3 uniformChannelResolution[4];
+    //uniform samplerXX iChanneli;
 }
 PUFshader;
-
-typedef struct
-{
-    GLfloat R;
-    GLfloat G;
-    GLfloat B;
-    GLfloat A;
-}
-PUFcolor;
 
 typedef struct
 {
@@ -78,6 +120,9 @@ typedef struct
     GLuint depthbufferId;
     GLuint depthbufferWidth;
     GLuint depthbufferHeight;
+    int width;
+    int height;
+    int textureIsAttached;
 }
 PUFframebuffer;
 
@@ -98,32 +143,8 @@ typedef struct
 }
 PUFcamera;
 
-//Generic 4D vector
-typedef struct {
-    double x;
-    double y;
-    double z;
-    double w;
-} PUFvector;
 
-//Generic Euler angle
-typedef struct {
-    double x;
-    double y;
-    double z;
-} PUFangle;
-
-typedef enum {
-    DEGREES,
-    RADIANS
-} PUF_ANGLE_UNITS;
-
-typedef enum {
-    OBJECT,
-    WORLD
-} PUF_COORDINATE_SPACE;
-
-PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
+PUFvec4 pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
 
 PUFwindow pufInit(int windowWidth, int windowHeight, int framerate, const char * windowTitle);
 void pufIdle(void);
@@ -133,7 +154,7 @@ void pufUpdate(PUFwindow* window);
 void pufKeyboardCallback(void (*func)(unsigned char, int, int));
 void pufPointerMotionCallback(PUFwindow* window, void (*func)(float,float,float,float));
 
-void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearClip, float farClip);
+void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip);
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z);
 void pufCameraRotate(PUFcamera* camera, float angle, float vectorX, float vectorY, float vectorZ);
 void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float angleZ);
@@ -143,7 +164,7 @@ void pufMeshInit(PUFmesh* mesh);
 void pufMeshShapeQuad(PUFmesh* mesh);
 void pufMeshLoadOBJ(PUFmesh* mesh, char const* file);
 void pufMeshBind(PUFmesh* mesh);
-void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader);
+void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframebuffer* framebuffer);
 
 void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z);
 void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ, PUF_ANGLE_UNITS units);

@@ -1,22 +1,14 @@
 
 #include <GL/glew.h>
-#include <GL/glut.h>
 #include "puffin.h"
 #include "loadobj.h"
 #include "matrix.h"
 #include "helpers.h"
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
-/*** special function prototypes ***/
-void draw();
-void setup();
-void keyboard(unsigned char key, int specialKey, int x, int y);
-
-/*** prototypes for GLUT callbacks registered in pufInit ***/
-void pufKeyboard(unsigned char key, int x, int y);
-void pufSpecialKeys(int specialkey, int x, int y);
-void pufWindowResize(int, int);
 
 PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
 {
@@ -37,108 +29,14 @@ PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
     return vector;
 }
 
-PUFwindow pufInit(int windowWidth, int windowHeight, int framerate, const char* windowTitle)
+void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
 {
-    PUFwindow window;
-	if (windowHeight == 0)	// prevent divide by zero etc
-        windowHeight = 1;
-    window.windowHeight = windowHeight;
-    window.windowWidth = windowWidth;
-    window.frameRate = framerate;
-	int arghc = 0;
-    char* arghv;
-    glutInit(&arghc, &arghv);
-    
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
-    glutInitWindowSize(windowWidth, windowHeight);
-    window.windowID = glutCreateWindow(windowTitle);
-    glEnable(GL_MULTISAMPLE);
-    
-    if (window.windowID == 1) // special functions will operate on the first created window
-    {
-        glutDisplayFunc(draw);
-        glutIdleFunc(NULL);
-        glutReshapeFunc(pufWindowResize);
-        glutKeyboardFunc(pufKeyboard);
-        glutSpecialFunc(pufSpecialKeys);
-    }
+    //camera->window = window;
+    //camera->width = window->windowWidth;
+    //camera->height = window->windowHeight;
+    //glViewport(0,0, camera->width,camera->height);
 
-    glewInit();
-	
-	window.glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[0]);
-	window.glMajorVersion = atoi((const char *)&glGetString(GL_VERSION)[2]); 
-/* 
-    window->frameCounter = 0;
-    window->frameDelay = 0;    
-    window->frameTick = 0;
-*/
-    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-
-    return window;
-}
-
-void pufKeyboard(unsigned char key, int x, int y)
-{
-    keyboard(key,0,x,y);
-}
-
-void pufSpecialKeys(int specialKey, int x, int y)
-{
-    keyboard(0,specialKey,x,y);
-}
-
-void pufRun()
-{
-    setup();
-    glutMainLoop();
-}
-
-void pufWindowResize(int windowWidth, int windowHeight)
-{
-}
-
-void pufRedisplayTimer(int id)
-{
-    glutPostRedisplay();
-}
-
-void pufUpdate(PUFwindow* window)
-{
-    glutSetWindow(window->windowID);
-    glutSwapBuffers();
-    
-    //
-    double delay = 1000.0/(double)window->frameRate; // set delay to 1000ms divided by the window framerate
-    //glutTimerFunc(delay, pufRedisplayTimer, window->windowID); // set a timer to call glutPostRedisplay on window synced to framerate
-    //
-    glutPostRedisplay();
-    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-    
-    
-    if (window->frameRate > 0)
-    {
-        if (window->frameTick == 0)
-        {
-            window->frameTick = glutGet(GLUT_ELAPSED_TIME);
-        }
-        
-        int maxDelay = (int)(1000.0f/(float)window->frameRate+0.5f);
-        unsigned int delay = (unsigned int)(window->frameTick + (1000/window->frameRate) - glutGet(GLUT_ELAPSED_TIME));
-        while(delay > 0 && delay < maxDelay)
-            delay = (unsigned int)(window->frameTick + (1000/window->frameRate) - glutGet(GLUT_ELAPSED_TIME));
-        window->frameTick = glutGet(GLUT_ELAPSED_TIME);
-    }
-    ++window->frameCounter;
-    
-     
-}
-
-void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearClip, float farClip)
-{
-    camera->window = window;
-    camera->width = window->windowWidth;
-    camera->height = window->windowHeight;
-    glViewport(0,0, camera->width,camera->height);
+    /* set OpenGL stuff to something sensible */
 	glShadeModel(GL_SMOOTH);
     glClearColor(0.0f,0.0f,0.0f,0.0f);
     glClearDepth(1.0f);
@@ -147,10 +45,16 @@ void pufCameraInit(PUFwindow* window, PUFcamera* camera, float fov, float nearCl
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    if (fov == 0.0)
-        pufMatrixProjectOrtho(camera->width, camera->height, nearClip, farClip, camera->projectionMatrix);
-    else
-        pufMatrixProjectPersp(fov, camera->width, camera->height, nearClip, farClip, camera->projectionMatrix);
+    
+    GLint viewportDims[4] = {0};
+    glGetIntegerv(GL_VIEWPORT, viewportDims);
+    int viewportWidth = viewportDims[2];
+    int viewportHeight = viewportDims[3];
+    
+    if (fov == 0.0) // orthographic projection
+        pufMatrixProjectOrtho(viewportWidth, viewportHeight, nearClip, farClip, camera->projectionMatrix);
+    else // perspective projection
+        pufMatrixProjectPersp(fov, viewportWidth, viewportHeight, nearClip, farClip, camera->projectionMatrix);
     
     int i;
     for (i=0;i < 15; i++)
@@ -418,17 +322,38 @@ void pufMeshBind(PUFmesh* mesh)
 }
 
 /* draws Puffin mesh */
-void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader) 
+void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframebuffer* framebuffer) 
 {
+    int fbHeight;
+    int fbWidth;
+
+    if (framebuffer)
+    {
+        pufFramebufferBindAndClear(framebuffer);
+        // get framebuffer dimensions
+        fbWidth = framebuffer->width;
+        fbHeight = framebuffer->height;
+    }
+    else
+    {
+        // we're drawing to the default framebuffer, find out its width and height
+        GLint dims[4] = {0};
+        glGetIntegerv(GL_VIEWPORT, dims);
+        fbWidth = dims[2];
+        fbHeight = dims[3];
+    }
+
     glUseProgram(shader->shaderProgram);
-		
+	
+
     GLint uniformModelviewProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewProjectionMatrix");
     GLint uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
     GLint uniformModelViewMatrix = glGetUniformLocation(shader->shaderProgram, "modelViewMatrix");
-    GLint uniformRenderTargetWidth = glGetUniformLocation(shader->shaderProgram, "renderTargetWidth");
-    GLint uniformRenderTargetHeight = glGetUniformLocation(shader->shaderProgram, "renderTargetHeight");
-    GLint uniformRenderTargetSize = glGetUniformLocation(shader->shaderProgram, "renderTargetSize");
-    GLint uniformTime = glGetUniformLocation(shader->shaderProgram, "time");
+    //GLint uniformRenderTargetWidth = glGetUniformLocation(shader->shaderProgram, "renderTargetWidth");
+    //GLint uniformRenderTargetHeight = glGetUniformLocation(shader->shaderProgram, "renderTargetHeight");
+    //GLint uniformRenderTargetSize = glGetUniformLocation(shader->shaderProgram, "renderTargetSize");
+    int uniformLocResolution = glGetUniformLocation(shader->shaderProgram, "iResolution");
+    GLint uniformTime = glGetUniformLocation(shader->shaderProgram, "iTime");
 
     GLfloat modelMatrix[16];
     GLfloat viewMatrix[16];
@@ -467,10 +392,12 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader)
     glUniformMatrix4fv(uniformModelViewMatrix, 1, GL_FALSE, modelviewMatrix);
     glUniformMatrix4fv(uniformModelMatrix, 1, GL_FALSE, modelMatrix);
     
-	glUniform1f(uniformRenderTargetWidth, (float)camera->width);
-    glUniform1f(uniformRenderTargetHeight, (float)camera->height);
-    glUniform2f(uniformRenderTargetSize, (float)camera->width, (float)camera->height);
-    glUniform1f(uniformTime, (float)glutGet(GLUT_ELAPSED_TIME));
+	glUniform3f(uniformLocResolution, (float)fbWidth, (float)fbHeight, 1.0f);
+    //glUniform1i(uniformRenderTargetWidth, fbWidth);
+    //glUniform1i(uniformRenderTargetHeight, fbHeight);
+    //glUniform2f(uniformRenderTargetSize, (float)camera->width, (float)camera->height);
+    glUniform1f(uniformTime, shader->uniformTime);
+    //glUniform1f(uniformTime, 1.0f);
 	
 	glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -494,6 +421,11 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glUseProgram(0);
+
+    if (framebuffer)
+    {
+        pufFramebufferUnbind();
+    }
 	
 
 }
@@ -688,7 +620,10 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 		glAttachShader(shader->shaderProgram,fragmentShader);
 		glLinkProgram(shader->shaderProgram);
 	
-
+        // zero shader uniforms
+        shader->uniformTime = 0.0f;
+        shader->uniformTimeDelta = 0.0f;
+        shader->uniformFrame = 0.0f;
 } 
 
 void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char const* fragmentShaderSource)
@@ -944,32 +879,46 @@ void pufFramebufferInit(PUFframebuffer* framebuffer)
     glGenRenderbuffers(1, &framebuffer->depthbufferId);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    framebuffer->textureIsAttached = 0;
 }
 
 void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture)
 {
-	//texture stuff
-    glBindTexture(GL_TEXTURE_2D, texture->textureId);
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,0); 
-    
-	//framebuffer stuff
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->textureId, 0);
-	//depth buffer stuff
-	
-    glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texture->width, texture->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer->depthbufferId);
 
-	
-	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		printf("Alert!");
-	
-	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-	
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    // We only support one framebuffer texture for now.
+    // In the future we might want more, we then need a way to specify the attachment point and to keep track of the smallest texture (which is the renderable area for the entire thing, apparently).
+
+    if (framebuffer->textureIsAttached == 0)
+    {
+        framebuffer->textureIsAttached = 1;
+
+        framebuffer->width = texture->width;
+        framebuffer->height = texture->height;
+
+        //texture stuff
+        glBindTexture(GL_TEXTURE_2D, texture->textureId);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,0); 
+        
+        //framebuffer stuff
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->textureId, 0);
+        
+        //depth buffer stuff -- this is a renderbuffer because that's faster, but could also be a texture if we want it in the future
+        glBindRenderbuffer(GL_RENDERBUFFER,framebuffer->depthbufferId);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texture->width, texture->height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer->depthbufferId);
+
+        
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            printf("Alert!");
+        
+        glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+        
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 void pufFramebufferBindAndClear(PUFframebuffer* framebuffer)
