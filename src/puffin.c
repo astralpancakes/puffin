@@ -37,15 +37,16 @@ void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
     //glViewport(0,0, camera->width,camera->height);
 
     /* set OpenGL stuff to something sensible */
-	glShadeModel(GL_SMOOTH);
+	
+	//glShadeModel(GL_SMOOTH);
     glClearColor(0.0f,0.0f,0.0f,0.0f);
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	
     GLint viewportDims[4] = {0};
     glGetIntegerv(GL_VIEWPORT, viewportDims);
     int viewportWidth = viewportDims[2];
@@ -324,8 +325,8 @@ void pufMeshBind(PUFmesh* mesh)
 /* draws Puffin mesh */
 void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframebuffer* framebuffer) 
 {
-    int fbHeight;
-    int fbWidth;
+    GLint fbHeight;
+    GLint fbWidth;
 
     if (framebuffer)
     {
@@ -352,7 +353,7 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframe
     //GLint uniformRenderTargetWidth = glGetUniformLocation(shader->shaderProgram, "renderTargetWidth");
     //GLint uniformRenderTargetHeight = glGetUniformLocation(shader->shaderProgram, "renderTargetHeight");
     //GLint uniformRenderTargetSize = glGetUniformLocation(shader->shaderProgram, "renderTargetSize");
-    int uniformLocResolution = glGetUniformLocation(shader->shaderProgram, "iResolution");
+    GLint uniformLocResolution = glGetUniformLocation(shader->shaderProgram, "iResolution");
     GLint uniformTime = glGetUniformLocation(shader->shaderProgram, "iTime");
 
     GLfloat modelMatrix[16];
@@ -392,12 +393,17 @@ void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframe
     glUniformMatrix4fv(uniformModelViewMatrix, 1, GL_FALSE, modelviewMatrix);
     glUniformMatrix4fv(uniformModelMatrix, 1, GL_FALSE, modelMatrix);
     
-	glUniform3f(uniformLocResolution, (float)fbWidth, (float)fbHeight, 1.0f);
+	glUniform3f(uniformLocResolution, (GLfloat)fbWidth, (GLfloat)fbHeight, 1.0f);
     //glUniform1i(uniformRenderTargetWidth, fbWidth);
     //glUniform1i(uniformRenderTargetHeight, fbHeight);
     //glUniform2f(uniformRenderTargetSize, (float)camera->width, (float)camera->height);
     glUniform1f(uniformTime, shader->uniformTime);
     //glUniform1f(uniformTime, 1.0f);
+	
+	// dummy vertex array object for compatibility (https://stackoverflow.com/questions/24643027/opengl-invalid-operation-following-glenablevertexattribarray)
+	GLuint vaoId = 0;
+	glGenVertexArrays(1, &vaoId);
+	glBindVertexArray(vaoId);
 	
 	glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -601,25 +607,69 @@ void pufMeshDestroy(PUFmesh* mesh)
 void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
 {
 
+		GLint vertexShaderCompileSuccess, fragmentShaderCompileSuccess, shaderLinkSuccess;
+
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
+		//printf("vertexShaderSource: %s",vertexShaderSource);
 		glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
 		glCompileShader(vertexShader);
+		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexShaderCompileSuccess);
+		if (vertexShaderCompileSuccess == GL_FALSE)
+		{
+			printf("Compilation of vertex shader source file %s failed:\n", vertexShaderSourceFile);
+			GLint maxLength = 0;
+			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+			GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
+			glGetShaderInfoLog(vertexShader, maxLength, &maxLength, errorLog);
+			printf("%s", errorLog);
+			free((void*)errorLog);
+		}			
 		free((void*)vertexShaderSource);
 		
 		
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		
 		const GLchar* fragmentShaderSource = pufReadFile(fragmentShaderSourceFile);
+		//printf("fragmentShaderSource: %s",fragmentShaderSource);
 		glShaderSource(fragmentShader,1,&fragmentShaderSource,NULL);
 		glCompileShader(fragmentShader);
+		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentShaderCompileSuccess);
+		if (fragmentShaderCompileSuccess == GL_FALSE)
+		{
+			printf("Compilation of fragment shader source file %s failed:\n", fragmentShaderSourceFile);
+			GLint maxLength = 0;
+			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+			GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
+			glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, errorLog);
+			printf("%s", errorLog);
+			free((void*)errorLog);
+		}
 		free((void*)fragmentShaderSource);
 		
-		shader->shaderProgram = glCreateProgram();
-		glAttachShader(shader->shaderProgram,vertexShader);
-		glAttachShader(shader->shaderProgram,fragmentShader);
-		glLinkProgram(shader->shaderProgram);
-	
+		if (fragmentShaderCompileSuccess && vertexShaderCompileSuccess)
+		{
+			shader->shaderProgram = glCreateProgram();
+			glAttachShader(shader->shaderProgram,vertexShader);
+			glAttachShader(shader->shaderProgram,fragmentShader);
+			glLinkProgram(shader->shaderProgram);
+			glGetProgramiv(shader->shaderProgram, GL_LINK_STATUS, &shaderLinkSuccess);
+			if (shaderLinkSuccess == GL_FALSE)
+			{
+				printf("Shader program linking of %s and %s failed:", vertexShaderSourceFile, fragmentShaderSourceFile);
+				GLint maxLength = 0;
+				glGetProgramiv(shader->shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+				GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
+				glGetProgramInfoLog(shader->shaderProgram, maxLength, &maxLength, errorLog);
+				printf("%s", errorLog);
+				glDeleteProgram(shader->shaderProgram);
+			}
+		}
+		
+		// these aren't really needed because the unlinked shaders are on the stack but whatevs...
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		
         // zero shader uniforms
         shader->uniformTime = 0.0f;
         shader->uniformTimeDelta = 0.0f;

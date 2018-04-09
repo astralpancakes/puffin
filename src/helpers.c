@@ -6,21 +6,33 @@
 
 char* pufReadFile(char const* file)
 {
-  FILE* f;
-  long len;
-  char* s = 0;
-  // open file and get its length
-  if (!(f = fopen(file, "r"))) goto readFileError1;
-  fseek(f, 0, SEEK_END);
-  len = ftell(f);
-  // read the file in an allocated buffer
-  if (!(s = (char*)malloc(len+1))) goto readFileError2;
-  rewind(f);
-  len = fread(s, 1, len, f);
-  s[len] = '\0';
-
-  readFileError2: fclose(f);
-  readFileError1: return s;
+	FILE* f;
+	long len;
+	char* s = 0;
+	// open file and get its length
+	if ((f = fopen(file, "r")))
+	{
+  		fseek(f, 0, SEEK_END);
+  		len = ftell(f);
+		s = (char*)malloc(len+1);
+  		// read the file in an allocated buffer
+  		if (s)
+		{
+  			rewind(f);
+			len = fread(s, 1, len, f);
+  			s[len] = '\0';
+		}
+		else
+		{
+			printf("Puffin failed to allocate memory for file %s...\n",file);
+		}
+		fclose(f);
+	}
+	else
+	{
+		printf("Puffin failed to open file %s...\n",file);
+	}
+  	return s;
 }
 
 int pufClampi(int value, int min, int max)
