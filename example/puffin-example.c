@@ -74,18 +74,18 @@ printf("Supported GLSL version is %s.\n", (char *)glGetString(GL_SHADING_LANGUAG
 	
 	pufMeshInit(&cubeMesh);
 	pufMeshInit(&framebufferMesh);
-	pufMeshLoadOBJ(&cubeMesh, "solid.obj");
+	pufMeshLoadOBJ(&cubeMesh, "../solid.obj");
 	pufMeshShapeQuad(&framebufferMesh);
 	pufMeshBind(&cubeMesh);
 	pufMeshBind(&framebufferMesh);
-	pufTextureLoadBMP(&cubeTexture, "puffin.bmp");
+	pufTextureLoadBMP(&cubeTexture, "../puffin.bmp");
 	pufTextureCreate(&framebufferTexture,width,height);
 	
 	pufMeshTranslate(&cubeMesh,0.0f,0.0f,-1.0f);
 	pufMeshRotateEuler(&cubeMesh,0.0f,0.0f,-55.0f,DEGREES);
 
-	pufShaderLoad(&cubeShader, "meshVert.glsl", "meshFrag.glsl");
-	pufShaderLoad(&framebufferShader, "framebufferVert.glsl", "framebufferFrag.glsl");
+	pufShaderLoad(&cubeShader, "../meshVert.glsl", "../meshFrag.glsl");
+	pufShaderLoad(&framebufferShader, "../framebufferVert.glsl", "../framebufferFrag.glsl");
 	
 	pufFramebufferInit(&framebuffer);
 	pufFramebufferTexture(&framebuffer,&framebufferTexture);

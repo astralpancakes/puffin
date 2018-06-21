@@ -233,7 +233,7 @@ void pufMeshInit(PUFmesh* mesh)
 void pufMeshShapeQuad(PUFmesh* mesh)
 {
 	mesh->vertexCount = 6;
-	mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
+	mesh->verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
 	mesh->verts[0].position[0] = -1.0f;
 	mesh->verts[0].position[1] = 1.0f;
 	mesh->verts[0].position[2] = 0.0f;
@@ -292,7 +292,7 @@ void pufMeshShapeQuad(PUFmesh* mesh)
 void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) 
 {
     GLfloat* obj = pufLoadOBJ(file, &mesh->vertexCount);
-    mesh->verts = malloc(sizeof(PUFvertex)*mesh->vertexCount);
+    mesh->verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
 
     int i;
     for (i=0;i<mesh->vertexCount;++i)
