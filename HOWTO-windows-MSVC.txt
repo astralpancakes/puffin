@@ -1,0 +1,17 @@
+- Install Microsoft Visual Studio
+
+- Set up command line use of cl.exe by doing "call "c:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64" or similar
+
+(- Install Git for Windows, use all default options in the installer except remove Shell Integration and auto updates)
+
+- Download prebuilt GLEW binaries for MSVC from http://glew.sourceforge.net/
+
+- Copy GLEW headers (include\*.h) into a folder named include in the same folder as the puffin folder
+
+- Copy GLEW libs (lib\*.lib) into a folder named lib in the same folder as the puffin folder
+
+- Copy GLEW dll's into executable direcory
+
+- Download prebuilt GLFW Windows binaries from http://www.glfw.org/download.html
+
+- Copy GLFW headers, libs and dll as above

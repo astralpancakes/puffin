@@ -4,7 +4,7 @@
 
 - Add MinGW to PATH (eg. add the user variable PATH = C:\MinGW\bin;%PATH% under System -> Advanced -> Environment Variables...
 
-(- Install Git for Windows, use all default options in the installer except remove Shell Integration and add auto updates)
+(- Install Git for Windows, use all default options in the installer except remove Shell Integration and auto updates)
 
 - Build GLEW for MinGW using build_glew_mingw.bat or otherwise
 
@@ -12,6 +12,6 @@
 
 - Copy GLEW dll's into executable direcory
 
-- Download freeglut-MinGW binaries from https://www.transmissionzero.co.uk/computing/using-glut-with-mingw/ or build from the source at https://github.com/TransmissionZero/freeglut-MinGW
+- Download prebuilt GLFW Windows 32-bit binaries from http://www.glfw.org/download.html
 
-- Copy freeglut headers, libs and dll as above
+- Copy GLFW headers, libs and dll as above
