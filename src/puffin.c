@@ -612,40 +612,47 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
 		//printf("vertexShaderSource: %s",vertexShaderSource);
-		glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
-		glCompileShader(vertexShader);
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexShaderCompileSuccess);
-		if (vertexShaderCompileSuccess == GL_FALSE)
-		{
-			printf("Compilation of vertex shader source file %s failed:\n", vertexShaderSourceFile);
-			GLint maxLength = 0;
-			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-			GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
-			glGetShaderInfoLog(vertexShader, maxLength, &maxLength, errorLog);
-			printf("%s", errorLog);
-			free((void*)errorLog);
-		}			
-		free((void*)vertexShaderSource);
+		if (vertexShaderSource != 0)
+        {
+            glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+            glCompileShader(vertexShader);
+            glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexShaderCompileSuccess);
+            if (vertexShaderCompileSuccess == GL_FALSE)
+            {
+                printf("Compilation of vertex shader source file %s failed:\n", vertexShaderSourceFile);
+                GLint maxLength = 0;
+                glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+                GLchar *errorLog = (GLchar *)malloc(maxLength * sizeof(GLchar));
+                glGetShaderInfoLog(vertexShader, maxLength, &maxLength, errorLog);
+                printf("%s", errorLog);
+                free((void *)errorLog);
+            }
+                free((void*)vertexShaderSource);
+        }
 		
 		
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		
 		const GLchar* fragmentShaderSource = pufReadFile(fragmentShaderSourceFile);
 		//printf("fragmentShaderSource: %s",fragmentShaderSource);
-		glShaderSource(fragmentShader,1,&fragmentShaderSource,NULL);
-		glCompileShader(fragmentShader);
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentShaderCompileSuccess);
-		if (fragmentShaderCompileSuccess == GL_FALSE)
-		{
-			printf("Compilation of fragment shader source file %s failed:\n", fragmentShaderSourceFile);
-			GLint maxLength = 0;
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-			GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
-			glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, errorLog);
-			printf("%s", errorLog);
-			free((void*)errorLog);
-		}
-		free((void*)fragmentShaderSource);
+        if (fragmentShaderSource != 0)
+        {
+            glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+            glCompileShader(fragmentShader);
+            glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentShaderCompileSuccess);
+            if (fragmentShaderCompileSuccess == GL_FALSE)
+            {
+                printf("Compilation of fragment shader source file %s failed:\n", fragmentShaderSourceFile);
+                GLint maxLength = 0;
+                glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+                GLchar *errorLog = (GLchar *)malloc(maxLength * sizeof(GLchar));
+                glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, errorLog);
+                printf("%s", errorLog);
+                free((void *)errorLog);
+            }
+            	free((void*)fragmentShaderSource);
+        }
+
 		
 		if (fragmentShaderCompileSuccess && vertexShaderCompileSuccess)
 		{
