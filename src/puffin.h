@@ -174,9 +174,6 @@ void pufMeshScale(PUFmesh* mesh, float X,float Y,float Z);
 
 void pufMeshDestroy(PUFmesh* mesh);
 
-void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char const* fragmentShaderSourceFile); // loads shader from source files
-void pufShaderCreate(PUFshader* shader,char const* vertexShaderSource,char const* fragmentShaderSource); // creates shader from code typed into function parameter
-
 void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);
 
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
@@ -195,6 +192,10 @@ void pufFramebufferInit(PUFframebuffer* framebuffer);
 void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture);
 void pufFramebufferBindAndClear(PUFframebuffer* framebuffer);
 void pufFramebufferUnbind();
+
+// shaders.c
+void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char const* fragmentShaderSourceFile); // loads shader from source files
+void pufShaderCreate(PUFshader* shader,char const* vertexShaderSource,char const* fragmentShaderSource); // creates shader from code typed into function parameter
 
 void pufShaderUniform1fSet(PUFshader*, const char *, float);
 void pufShaderUniform3fSet(PUFshader*, const char *, float, float, float);

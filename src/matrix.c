@@ -1,9 +1,8 @@
 #include <string.h>
 #include <math.h>
-#include <GL/glew.h>
 
 
-GLfloat* pufMatrixTranslate(float X, float Y, float Z, GLfloat* M)
+float* pufMatrixTranslate(float X, float Y, float Z, float* M)
 {
     M[0] = 1;M[4] = 0;M[8] = 0;M[12] = X;
     M[1] = 0;M[5] = 1;M[9] = 0;M[13] = Y;
@@ -13,7 +12,7 @@ GLfloat* pufMatrixTranslate(float X, float Y, float Z, GLfloat* M)
     return M;
 }
 
-GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, GLfloat* M)
+float* pufMatrixRotate(float ang, float X, float Y, float Z, float* M)
 {
 
     if (X+Y+Z != 0)
@@ -55,7 +54,7 @@ GLfloat* pufMatrixRotate(float ang, float X, float Y, float Z, GLfloat* M)
 	return M;
 }
 
-GLfloat* pufMatrixFromQuaternion(float X, float Y, float Z, float W, GLfloat* M)
+float* pufMatrixFromQuaternion(float X, float Y, float Z, float W, float* M)
 {
     float xx      = X * X;
     float xy      = X * Y;
@@ -87,7 +86,7 @@ GLfloat* pufMatrixFromQuaternion(float X, float Y, float Z, float W, GLfloat* M)
 	return M;
 }
 
-GLfloat* pufMatrixRotateEuler(float angleX, float angleY, float angleZ, GLfloat* M)
+float* pufMatrixRotateEuler(float angleX, float angleY, float angleZ, float* M)
 {
 	float cX = cos(angleX);
 	float sX = sin(angleX);
@@ -122,9 +121,9 @@ GLfloat* pufMatrixRotateEuler(float angleX, float angleY, float angleZ, GLfloat*
 	return M;
 }
 
-GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat* M)
+float* pufMatrixScale(float X, float Y, float Z, float* M)
 {
-	memset(M, 0, sizeof(GLfloat)*16);
+	memset(M, 0, sizeof(float)*16);
 	
     M[0] = X;
     M[5] = Y;
@@ -134,17 +133,17 @@ GLfloat* pufMatrixScale(float X, float Y, float Z, GLfloat* M)
     return M;
 }
 
-GLfloat* pufMatrixProjectPersp(float fov, float width, float height, float zNear, float zFar, GLfloat* M)
+float* pufMatrixProjectPersp(float fov, float width, float height, float zNear, float zFar, float* M)
 {
 
 
     // assume FOV given as degrees
     fov = fov * M_PI / 180.0f;
 	
-    GLfloat f = 1.0f/tan(fov/2.0f);
-    GLfloat negDepth = zNear-zFar;
+    float f = 1.0f/tan(fov/2.0f);
+    float negDepth = zNear-zFar;
 
-	memset(M, 0, sizeof(GLfloat)*16);
+	memset(M, 0, sizeof(float)*16);
 
     M[0] = f/(width/height);
     M[5] = f;
@@ -155,9 +154,9 @@ GLfloat* pufMatrixProjectPersp(float fov, float width, float height, float zNear
     return M;
 }
 
-GLfloat* pufMatrixProjectOrtho(float width, float height, float zNear, float zFar, GLfloat* M)
+float* pufMatrixProjectOrtho(float width, float height, float zNear, float zFar, float* M)
 {
-    memset(M, 0, sizeof(GLfloat)*16);
+    memset(M, 0, sizeof(float)*16);
     
     M[0] = 1.0f/(width);
     M[5] = 1.0f/(height);
@@ -169,7 +168,7 @@ GLfloat* pufMatrixProjectOrtho(float width, float height, float zNear, float zFa
 
 }
 
-GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
+float* pufMatrixMult(float* A, float* B, float* M)
 {
     int i, j;
     for (i=0; i<16; i+=4)
@@ -178,7 +177,7 @@ GLfloat* pufMatrixMult(GLfloat* A,GLfloat* B,GLfloat* M)
     return M;
 }
 
-GLfloat* pufMatrixShrink(GLfloat* A,GLfloat* M)
+float* pufMatrixShrink(float* A, float* M)
 {
     int i, j;
     for (i=0; i<3; i++)
