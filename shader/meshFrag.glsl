@@ -7,9 +7,9 @@ out vec4 fragColor;
 uniform sampler2D textureSampler;
 
 // basic light source
-vec3 lightPosition = vec3(0.0,5.0, 1.0);
-vec3 lightColor = vec3(.9,0.6,0.0);
-float lightMultiplier = 0.2;
+uniform vec3 lightPosition = vec3(2.0,2.0, 2.0);
+uniform vec3 lightColor = vec3(1.0,1.0,1.0);
+uniform float lightMultiplier = 1.0;
 
 void main()
 {

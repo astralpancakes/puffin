@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "shaders.c"
+
 
 PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
 {

@@ -196,4 +196,7 @@ void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture);
 void pufFramebufferBindAndClear(PUFframebuffer* framebuffer);
 void pufFramebufferUnbind();
 
+void pufShaderUniform1fSet(PUFshader*, const char *, float);
+void pufShaderUniform3fSet(PUFshader*, const char *, float, float, float);
+
 #endif
