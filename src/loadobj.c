@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
 #include <GL/glew.h>
+#endif
 
 
 GLfloat* pufLoadOBJ(char const* name,int* vertexCount)

@@ -1,7 +1,9 @@
 #ifndef PUFFIN_H
 #define PUFFIN_H
 
+#ifdef _WIN32
 #include <GL/glew.h>
+#endif
 
 #include "helpers.h"
 

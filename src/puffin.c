@@ -1,5 +1,7 @@
-
+#ifdef _WIN32
 #include <GL/glew.h>
+#endif
+
 #include "puffin.h"
 #include "loadobj.h"
 #include "matrix.h"
@@ -726,7 +728,7 @@ void pufTextureLoadBMP(PUFtexture* texture, char const* file) //loads BMP file i
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -818,7 +820,7 @@ void pufTextureUpdate(PUFtexture* texture)
 
     glBindTexture(GL_TEXTURE_2D, texture->textureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT,1); 
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -861,7 +863,7 @@ void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture)
 
         //texture stuff
         glBindTexture(GL_TEXTURE_2D, texture->textureId);
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,0); 
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,texture->width,texture->height,0,texture->textureFormat,GL_FLOAT,0); 
         
         //framebuffer stuff
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);

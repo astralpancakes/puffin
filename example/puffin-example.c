@@ -24,6 +24,7 @@ int isPaused = 0;
 int width = 1280   ;
 int height = 720;
 
+/*
 void MessageCallback( GLenum source,
                       GLenum type,
                       GLuint id,
@@ -36,7 +37,7 @@ void MessageCallback( GLenum source,
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
 }
-
+*/
 
 void draw_immidiate_triangle()
 {
@@ -114,7 +115,6 @@ void draw()
 
         framebufferShader.uniformTime = glfwGetTime();    
         pufMeshRender(&framebufferMesh,&camera,&framebufferShader, NULL);
-		//draw_immidiate_triangle();
         pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
 	    /*
         pufUpdate(&window);
@@ -143,9 +143,7 @@ int main(int argc, char** argv)
     {/* error */}
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
     window = glfwCreateWindow(width, height, "My Title", NULL, NULL);
 
@@ -155,7 +153,10 @@ int main(int argc, char** argv)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glfwSetKeyCallback(window, key_callback);
+    
+    #ifdef _WIN32
     glewInit();
+    #endif
 
     //glViewport(0,0,width,height);
 

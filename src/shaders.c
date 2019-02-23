@@ -104,7 +104,7 @@ void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char con
     int32_t uniformLocation = glGetUniformLocation(shader->shaderProgram, uniformName); \
     if (uniformLocation != -1) { \
         glUseProgram(shader->shaderProgram); \
-        glUniform##T##(uniformLocation, T_ARGS); \
+        glUniform##T(uniformLocation, T_ARGS); \
         glUseProgram(0); \
     } \
     else \
