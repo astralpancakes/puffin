@@ -39,31 +39,6 @@ void MessageCallback( GLenum source,
 }
 */
 
-void draw_immidiate_triangle()
-{
-	glClearColor(0,0,0,0);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glOrtho(-2.0,2.0,-2.0,2.0,0.1,10.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-
-    glTranslatef(0.0f,0.0f, -6.0f);
-
-    glBegin(GL_TRIANGLES);
-        glColor3f(1.0f,1.0f,1.0f);
-        glVertex3f(0.0f,1.0f,0.0f);
-        glVertex3f(-1.0f,-1.0f,0.0f);
-        glVertex3f(1.0f,-1.0f,0.0f);
-    glEnd();
-}
-
-
 void setup()
 {
 printf("Supported GLSL version is %s.\n", (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -105,23 +80,14 @@ void draw()
         
         pufTextureBind(&cubeTexture);
 	    
-        //pufFramebufferBindAndClear(&framebuffer);
-
 	    pufMeshRender(&cubeMesh,&camera,&cubeShader, &framebuffer);
-
-	    //pufFramebufferUnbind();
 	    
         pufTextureBind(&framebufferTexture);
 
         framebufferShader.uniformTime = glfwGetTime();    
         pufMeshRender(&framebufferMesh,&camera,&framebufferShader, NULL);
         pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
-	    /*
-        pufUpdate(&window);
 
-	    if (!isPaused)
-		    pufMeshRotate(&cubeMesh, -0.5,1.0,0.0,0.0, DEGREES);
-        */
 }
 
 void error_callback(int error, const char* description)
@@ -160,9 +126,6 @@ int main(int argc, char** argv)
     glewInit();
     #endif
 
-    //glViewport(0,0,width,height);
-
-
 
     setup();
 
@@ -170,7 +133,6 @@ int main(int argc, char** argv)
     {
         glfwGetFramebufferSize(window, &width, &height);
     
-        //draw_immidiate_triangle();
         draw();
 
         glfwSwapBuffers(window);
