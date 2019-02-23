@@ -1,0 +1,9 @@
+0. Install command line tools by running a command like cc, make, git..?
+
+1. Check out the glfw source from https://github.com/glfw/glfw.git
+
+2. Install CMake binary, add to PATH by putting PATH="/Applications/CMake.app/Contents/bin":"$PATH" in ~/.profile
+
+3. Build GLFW by changing to the glfw root dir and running cmake .; make
+
+4. Puffin examples should compile by running their build scripts
