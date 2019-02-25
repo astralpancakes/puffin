@@ -1,7 +1,7 @@
 #version 330
 
-layout(location = 2) in vec2 vertexTexCoord;
 layout(location = 0) in vec3 vertexPosition;
+layout(location = 2) in vec2 vertexTexCoord;
 out vec2 fragTexCoord;
 
 uniform vec2 renderTargetSize;

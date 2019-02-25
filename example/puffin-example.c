@@ -21,8 +21,8 @@ PUFframebuffer framebuffer;
 int isPaused = 0;
 
 
-int width = 1280   ;
-int height = 720;
+int width = 640;
+int height = 360;
 
 /*
 void MessageCallback( GLenum source,
@@ -62,8 +62,8 @@ printf("Supported GLSL version is %s.\n", (char *)glGetString(GL_SHADING_LANGUAG
 	pufMeshTranslate(&cubeMesh,0.0f,0.0f,-1.0f);
 	pufMeshRotateEuler(&cubeMesh,0.0f,0.0f,-55.0f,DEGREES);
 
-	pufShaderLoad(&cubeShader, "../shader/meshVert.glsl", "../shader/meshFrag.glsl");
-	pufShaderLoad(&framebufferShader, "../shader/framebufferVert.glsl", "../shader/framebufferFrag.glsl");
+	pufShaderLoad(&cubeShader, "../shader/vsMeshBasic.glsl", "../shader/fsMeshTexturedLit.glsl");
+	pufShaderLoad(&framebufferShader, "../shader/vsFrameBasic.glsl", "../shader/fsFrameFilmic.glsl");
 	
 	pufFramebufferInit(&framebuffer);
 	pufFramebufferTexture(&framebuffer,&framebufferTexture);
