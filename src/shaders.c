@@ -113,5 +113,9 @@ void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char con
 
 //makes pufShaderUniform1fSet(PUFshader* shader, const char* uniformName, float value)
 MAKE_pufShaderUniformSet(1f,float value, value)
+//makes pufShaderUniform2fSet(PUFshader* shader, const char* uniformName, float v1, float v2)
+MAKE_pufShaderUniformSet(2f, TOKEN(float v1, float v2), TOKEN(v1, v2))
 //makes pufShaderUniform3fSet(PUFshader* shader, const char* uniformName, float v1, float v2, float v3)
 MAKE_pufShaderUniformSet(3f, TOKEN(float v1, float v2, float v3), TOKEN(v1, v2, v3))
+//makes pufShaderUniform4fSet(PUFshader* shader, const char* uniformName, float v1, float v2, float v3, float v4)
+MAKE_pufShaderUniformSet(4f, TOKEN(float v1, float v2, float v3, float v4), TOKEN(v1, v2, v3, v4))

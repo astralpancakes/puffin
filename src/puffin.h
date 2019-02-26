@@ -202,6 +202,8 @@ void pufShaderLoad(PUFshader* shader,char const* vertexShaderSourceFile,char con
 void pufShaderCreate(PUFshader* shader,char const* vertexShaderSource,char const* fragmentShaderSource); // creates shader from code typed into function parameter
 
 void pufShaderUniform1fSet(PUFshader*, const char *, float);
+void pufShaderUniform2fSet(PUFshader*, const char *, float, float);
 void pufShaderUniform3fSet(PUFshader*, const char *, float, float, float);
+void pufShaderUniform4fSet(PUFshader*, const char *, float, float, float, float);
 
 #endif

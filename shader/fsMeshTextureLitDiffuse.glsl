@@ -11,6 +11,8 @@ uniform vec3 lightPosition = vec3(2.0,2.0, 2.0);
 uniform vec3 lightColor = vec3(1.0,1.0,1.0);
 uniform float lightMultiplier = 1.0;
 
+uniform vec4 baseColor = vec4(0.0);
+
 void main()
 {
     // do a simple diffuse light calculation on the mesh
@@ -19,7 +21,11 @@ void main()
     // sample texture
     vec4 textureColor = texture(textureSampler, fragTexCoord);
     // light texture
-    vec3 litTextureColor = textureColor.rgb + (vec3(lightAmount)*lightColor);
-    // color mesh white and alpha-over the lit texture map on top
-    fragColor = vec4(mix(vec3(1.0), litTextureColor, textureColor.a), 1.0);
+    vec4 litTextureColor = vec4(textureColor.rgb + (lightAmount*lightColor), textureColor.a);
+
+    // mix lit texture with base color according to texture alpha channel
+    vec4 outputColor = mix(baseColor, litTextureColor, textureColor.a);
+
+    if (outputColor.a < 0.1) discard;
+    fragColor = outputColor;
 }
