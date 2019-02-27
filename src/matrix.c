@@ -1,7 +1,3 @@
-#include <string.h>
-#include <math.h>
-
-
 float* pufMatrixTranslate(float X, float Y, float Z, float* M)
 {
     M[0] = 1;M[4] = 0;M[8] = 0;M[12] = X;
