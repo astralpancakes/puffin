@@ -7,15 +7,15 @@
 #include "puffin.h"
 #include "loadobj.h"
 #include "matrix.h"
-#include "helpers.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
-#include "shaders.c"
 
+#include "shaders.c"
+#include "helpers.c"
 
 PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
 {

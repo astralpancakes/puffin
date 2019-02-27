@@ -7,8 +7,6 @@
     #include <OpenGL/gl3.h>
 #endif
 
-#include "helpers.h"
-
 //Generic 4D vector
 typedef struct {
     double x;
@@ -205,5 +203,10 @@ void pufShaderUniform1fSet(PUFshader*, const char *, float);
 void pufShaderUniform2fSet(PUFshader*, const char *, float, float);
 void pufShaderUniform3fSet(PUFshader*, const char *, float, float, float);
 void pufShaderUniform4fSet(PUFshader*, const char *, float, float, float, float);
+
+// helpers.c
+char* pufReadFile(char const* file);
+int32_t pufClampi(int value, int min, int max);
+float pufClampf(float value, float min, float max);
 
 #endif

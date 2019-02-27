@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
-#include "helpers.h"
-
 char* pufReadFile(char const* file)
 {
 	FILE* f;
@@ -35,7 +29,7 @@ char* pufReadFile(char const* file)
   	return s;
 }
 
-int pufClampi(int value, int min, int max)
+int32_t pufClampi(int value, int min, int max)
 {
     if (value > max)
         value = max;
