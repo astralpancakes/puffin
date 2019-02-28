@@ -9,7 +9,7 @@
 #endif
 
 
-GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
+float* pufLoadOBJ(char const* name,int* vertexCount)
 {
     FILE* f;
     int vertexCounter = 0;
@@ -403,8 +403,8 @@ GLfloat* pufLoadOBJ(char const* name,int* vertexCount)
 
 /* Combine all the previously created list into a big list of vertex, texture and normal coordinates for each face. This is pretty hairy... */
 
-        static GLfloat* combinedList;
-        combinedList = (GLfloat*)malloc(sizeof(GLfloat)*(fCount*3*3*3)); // every triangle has 3 vertices * pos/normal/UV  * 3 coordinates
+        static float* combinedList;
+        combinedList = (float*)malloc(sizeof(float)*(fCount*3*3*3)); // every triangle has 3 vertices * pos/normal/UV  * 3 coordinates
 
         for (i=0; i < fCount; i++)  // for each face...
         {

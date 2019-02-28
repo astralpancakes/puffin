@@ -4,17 +4,18 @@
     #include <OpenGL/gl3.h>
 #endif
 
-#include "puffin.h"
-#include "loadobj.h"
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
+#include <math.h>
+#include <string.h>
+
+#include "puffin.h"
 
 #include "shaders.c"
 #include "helpers.c"
 #include "matrix.c"
+#include "loadobj.c"
 
 PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
 {

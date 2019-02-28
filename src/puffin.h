@@ -209,7 +209,7 @@ char* pufReadFile(char const* file);
 int32_t pufClampi(int value, int min, int max);
 float pufClampf(float value, float min, float max);
 
-//matrix.c
+// matrix.c
 float* pufMatrixTranslate(float, float, float, float*);
 float* pufMatrixRotate(float ang, float X, float Y, float Z, float*);
 float* pufMatrixFromQuaternion(float X, float Y, float Z, float W, float* M);
@@ -220,5 +220,6 @@ float* pufMatrixProjectOrtho(float width, float height, float zNear, float zFar,
 float* pufMatrixMult(float* A, float* B, float* M);
 float* pufMatrixShrink(float* A, float* M);
 
-
+// loadobj.c
+float* pufLoadOBJ(char const*,int*);
 #endif
