@@ -146,8 +146,7 @@ typedef struct
 PUFcamera;
 
 
-PUFvec4 pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
-
+/*
 PUFwindow pufInit(int windowWidth, int windowHeight, int framerate, const char * windowTitle);
 void pufIdle(void);
 void pufRun();
@@ -155,18 +154,22 @@ void pufUpdate(PUFwindow* window);
 
 void pufKeyboardCallback(void (*func)(unsigned char, int, int));
 void pufPointerMotionCallback(PUFwindow* window, void (*func)(float,float,float,float));
+*/
 
+// camera.c
 void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip);
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z);
 void pufCameraRotate(PUFcamera* camera, float angle, float vectorX, float vectorY, float vectorZ);
 void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float angleZ);
 void pufCameraRotateEulerDegrees(PUFcamera* camera, float angleX, float angleY, float angleZ);
 
+// mesh.c
 void pufMeshInit(PUFmesh* mesh);
 void pufMeshShapeQuad(PUFmesh* mesh);
 void pufMeshLoadOBJ(PUFmesh* mesh, char const* file);
 void pufMeshBind(PUFmesh* mesh);
 void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframebuffer* framebuffer);
+void pufMeshDestroy(PUFmesh* mesh);
 
 void pufMeshTranslate(PUFmesh* mesh, float X, float Y, float Z);
 void pufMeshRotate(PUFmesh* mesh, float angle, float vectorX, float vectorY, float vectorZ, PUF_ANGLE_UNITS units);
@@ -174,22 +177,17 @@ void pufMeshRotateEuler(PUFmesh* mesh, float angleX, float angleY, float angleZ,
 void pufMeshRotateEulerDegrees(PUFmesh* mesh, float angleX, float angleY, float angleZ);
 void pufMeshScale(PUFmesh* mesh, float X,float Y,float Z);
 
-void pufMeshDestroy(PUFmesh* mesh);
-
-void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);
-
+// texture.c
 void pufTextureLoadBMP(PUFtexture* texture, char const* file);
 void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height);
-
 void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color);
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y);
-
 void pufTextureClear(PUFtexture* texture);
 void pufTextureUpdate(PUFtexture* texture);
 void pufTextureBind(PUFtexture* texture);
-
 void pufTextureDestroy(PUFtexture* texture);
 
+// framebuffer.c
 void pufFramebufferInit(PUFframebuffer* framebuffer);
 void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture);
 void pufFramebufferBindAndClear(PUFframebuffer* framebuffer);
@@ -208,6 +206,8 @@ void pufShaderUniform4fSet(PUFshader*, const char *, float, float, float, float)
 char* pufReadFile(char const* file);
 int32_t pufClampi(int value, int min, int max);
 float pufClampf(float value, float min, float max);
+PUFvec4 pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
+void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);
 
 // matrix.c
 float* pufMatrixTranslate(float, float, float, float*);

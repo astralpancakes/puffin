@@ -46,3 +46,40 @@ float pufClampf(float value, float min, float max)
         value = min;
     return value;
 }
+
+PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
+{
+
+    if (units == DEGREES)
+    {
+        pitch = pitch * M_PI / 180.0f;
+        yaw = yaw * M_PI / 180.0f;
+    }
+
+    PUFvector vector;
+
+    vector.x = cos(pitch)*sin(yaw);
+    vector.y = sin(pitch);
+    vector.z = cos(yaw)*cos(pitch);
+    vector.w = 0.0;
+
+    return vector;
+}
+
+
+
+void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A)
+{
+    if (R < 0.0f)
+        R = 0.0f;
+    if (G < 0.0f)
+        G = 0.0f;
+    if (B < 0.0f)
+        B = 0.0f;
+    if (A < 0.0f)
+        A = 0.0f;
+    color->R = R;
+    color->G = G;
+    color->B = B;
+    color->A = A;
+}
