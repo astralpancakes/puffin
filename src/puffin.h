@@ -7,6 +7,8 @@
     #include <OpenGL/gl3.h>
 #endif
 
+#include <stdint.h>
+
 //Generic 4D vector
 typedef struct {
     double x;
