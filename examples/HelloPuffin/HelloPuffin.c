@@ -42,8 +42,8 @@ void setup() // setup() is run once at program start
 	pufMeshRotateEuler(&objectMesh,0.0f,0.0f,-55.0f,DEGREES);
 
     // load a .bmp file for texturing our object and create an empty texture for rendering the framebuffer
-    pufTextureLoadBMP(&objectTexture, "../../texture/puffin.bmp");
-	pufTextureCreate(&framebufferTexture,width,height);
+    objectTexture = pufTextureLoadBMP("../../texture/puffin.bmp");
+	framebufferTexture = pufTextureCreate(width,height);
 	
     // load some shader code for our object and framebuffer
 	pufShaderLoad(&objectShader, "../../shader/vsMeshBasic.glsl", "../../shader/fsMeshTextureLitDiffuse.glsl");

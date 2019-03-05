@@ -180,8 +180,8 @@ void pufMeshRotateEulerDegrees(PUFmesh* mesh, float angleX, float angleY, float 
 void pufMeshScale(PUFmesh* mesh, float X,float Y,float Z);
 
 // texture.c
-void pufTextureLoadBMP(PUFtexture* texture, char const* file);
-void pufTextureCreate(PUFtexture* texture, GLuint width, GLuint height);
+PUFtexture pufTextureLoadBMP(char const* file);
+PUFtexture pufTextureCreate(uint32_t width, uint32_t height);
 void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color);
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y);
 void pufTextureClear(PUFtexture* texture);
