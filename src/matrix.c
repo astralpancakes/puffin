@@ -166,18 +166,16 @@ float* pufMatrixProjectOrtho(float width, float height, float zNear, float zFar,
 
 float* pufMatrixMult(float* A, float* B, float* M)
 {
-    int i, j;
-    for (i=0; i<16; i+=4)
-        for (j=0; j<4; j++)
+    for (int i=0; i<16; i+=4)
+        for (int j=0; j<4; j++)
             M[i+j] = A[j]*B[i] + A[j+4]*B[i+1] + A[j+8]*B[i+2] + A[j+12]*B[i+3];
     return M;
 }
 
 float* pufMatrixShrink(float* A, float* M)
 {
-    int i, j;
-    for (i=0; i<3; i++)
-        for (j=0; j<3; j++)
+    for (int i=0; i<3; i++)
+        for (int j=0; j<3; j++)
             M[i*3+j] = A[i*4+j];
     return M;
 }

@@ -12,7 +12,6 @@ PUFtexture pufTextureLoadBMP(char const* file) //loads BMP file into Puffin text
 
     glGenTextures(1, &texture.textureId);
     
-    int i, j;
     FILE* img = NULL;
     if ((img = fopen(file,"rb")))
     {
@@ -38,9 +37,9 @@ PUFtexture pufTextureLoadBMP(char const* file) //loads BMP file into Puffin text
         
         fseek(img,pixelDataStartingOffset,SEEK_SET);	// start reading image data
         
-        for(i = 0;i<texture.height;i++) // for each row...
+        for(int i = 0; i<texture.height; i++) // for each row...
         {
-            for(j = 0;j<texture.width;j++) // for each pixel...
+            for(int j = 0; j<texture.width; j++) // for each pixel...
                 fread(tempBuffer+(i*texture.width*pixelBytes+j*pixelBytes),pixelBytes,1,img); // read it...
             if ((texture.width*pixelBytes) % 4 != 0)  // BMP rows are stored on four byte alignments, so hop ahead after each row if needed
                 fseek(img,4 - ((texture.width*pixelBytes) % 4), SEEK_CUR);
@@ -48,7 +47,7 @@ PUFtexture pufTextureLoadBMP(char const* file) //loads BMP file into Puffin text
         
         fclose(img);
         
-        for (i=0; i < texture.width*texture.height; i++)
+        for (int i=0; i < texture.width*texture.height; i++)
         {
         /* BMP files are stored with the pixel data as ABGR (32 bits per pixel) or BGR (24 bits per pixel). 
         We want puffin textures to be RGBA, so we do some twiddling when we copy the pixel data.
@@ -80,7 +79,7 @@ PUFtexture pufTextureLoadBMP(char const* file) //loads BMP file into Puffin text
         texture.height = 1;
         texture.pixels = (GLfloat*)malloc(texture.height*texture.width*4*sizeof(GL_FLOAT));
         texture.pixels[0] = 0.0f;
-		for (i = 1;i<4;i++)
+		for (int i = 1; i<4; i++)
             texture.pixels[i] = 1.0f;
     }
     

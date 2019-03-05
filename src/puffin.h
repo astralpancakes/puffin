@@ -138,12 +138,11 @@ typedef struct
     GLfloat cameraScale[3];
 	GLfloat cameraTranslation[3];
 	GLfloat cameraRotation[4];
-    int32_t width;
-    int32_t height;
-	float nearClip;
-	float farClip;
+    GLint viewportWidth;
+    GLint viewportHeight;
+	GLfloat nearClip;
+	GLfloat farClip;
 
-    PUFwindow* window;
 }
 PUFcamera;
 
@@ -206,7 +205,7 @@ void pufShaderUniform4fSet(PUFshader*, const char *, float, float, float, float)
 
 // helpers.c
 char* pufReadFile(char const* file);
-int32_t pufClampi(int value, int min, int max);
+int pufClampi(int value, int min, int max);
 float pufClampf(float value, float min, float max);
 PUFvec4 pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
 void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);

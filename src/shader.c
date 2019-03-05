@@ -2,7 +2,9 @@
 void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
 {
 
-		int32_t vertexShaderCompileSuccess, fragmentShaderCompileSuccess, shaderLinkSuccess;
+		GLint vertexShaderCompileSuccess = 0; 
+        GLint fragmentShaderCompileSuccess = 0;
+        GLint shaderLinkSuccess = 0;
 
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		const GLchar* vertexShaderSource = pufReadFile(vertexShaderSourceFile);
@@ -15,7 +17,7 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
             if (vertexShaderCompileSuccess == GL_FALSE)
             {
                 printf("Compilation of vertex shader source file %s failed:\n", vertexShaderSourceFile);
-                int32_t maxLength = 0;
+                GLint maxLength = 0;
                 glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
                 GLchar *errorLog = (GLchar *)malloc(maxLength * sizeof(GLchar));
                 glGetShaderInfoLog(vertexShader, maxLength, &maxLength, errorLog);
@@ -38,7 +40,7 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
             if (fragmentShaderCompileSuccess == GL_FALSE)
             {
                 printf("Compilation of fragment shader source file %s failed:\n", fragmentShaderSourceFile);
-                int32_t maxLength = 0;
+                GLint maxLength = 0;
                 glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
                 GLchar *errorLog = (GLchar *)malloc(maxLength * sizeof(GLchar));
                 glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, errorLog);
@@ -59,7 +61,7 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 			if (shaderLinkSuccess == GL_FALSE)
 			{
 				printf("Shader program linking of %s and %s failed:", vertexShaderSourceFile, fragmentShaderSourceFile);
-				int32_t maxLength = 0;
+				GLint maxLength = 0;
 				glGetProgramiv(shader->shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
 				GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
 				glGetProgramInfoLog(shader->shaderProgram, maxLength, &maxLength, errorLog);
@@ -101,7 +103,7 @@ void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char con
 
 #define MAKE_pufShaderUniformSet(T, T_PARAMS, T_ARGS) void pufShaderUniform##T##Set(PUFshader* shader, const char* uniformName, T_PARAMS) \
 { \
-    int32_t uniformLocation = glGetUniformLocation(shader->shaderProgram, uniformName); \
+    GLint uniformLocation = glGetUniformLocation(shader->shaderProgram, uniformName); \
     if (uniformLocation != -1) { \
         glUseProgram(shader->shaderProgram); \
         glUniform##T(uniformLocation, T_ARGS); \

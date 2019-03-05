@@ -2,12 +2,11 @@
 /* zero the transformations of the mesh */
 void pufMeshInit(PUFmesh* mesh) 
 {
-    int i;
-	for (i=0; i<3; i++)
+	for (int i=0; i<3; i++)
 		mesh->meshScale[i] = 1.0f;
-	for (i=0; i<3; i++)
+	for (int i=0; i<3; i++)
 		mesh->meshTranslation[i] = 0.0f;
-	for (i=0; i<4; i++)
+	for (int i=0; i<4; i++)
 		mesh->meshRotation[i] = 0.0f;
 	mesh->meshRotation[3] = 1.0f;
 }
@@ -63,8 +62,7 @@ PUFmesh pufMeshShapeQuad()
 	mesh.verts[5].texture[1] = 1.0f;
 	mesh.verts[5].texture[2] = 0.0f;
 	
-    int i;
-	for (i=0;i<mesh.vertexCount;++i)
+	for (int i=0; i<mesh.vertexCount; ++i)
 	{
 		mesh.verts[i].color[0] = ((float)(rand() % 100))/100;
         mesh.verts[i].color[1] = (float)(rand() % 100)/100;
@@ -88,8 +86,7 @@ PUFmesh pufMeshLoadOBJ(char const* file)
     GLfloat* obj = pufLoadOBJ(file, &mesh.vertexCount);
     mesh.verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh.vertexCount);
 
-    int i;
-    for (i=0;i<mesh.vertexCount;++i)
+    for (int i=0; i<mesh.vertexCount; ++i)
     {
         mesh.verts[i].position[0] = obj[i*9+0];
         mesh.verts[i].position[1] = obj[i*9+1];
@@ -113,7 +110,7 @@ void pufMeshBind(PUFmesh* mesh)
 {
 	glGenBuffers(1, &mesh->vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
 }
 

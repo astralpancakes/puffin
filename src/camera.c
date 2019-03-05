@@ -20,15 +20,15 @@ PUFcamera pufCameraInit(float fov, float nearClip, float farClip)
 	
     GLint viewportDims[4] = {0};
     glGetIntegerv(GL_VIEWPORT, viewportDims);
-    int32_t viewportWidth = viewportDims[2];
-    int32_t viewportHeight = viewportDims[3];
+    camera.viewportWidth = viewportDims[2];
+    camera.viewportHeight = viewportDims[3];
     
     if (fov == 0.0) // orthographic projection
-        pufMatrixProjectOrtho(viewportWidth, viewportHeight, nearClip, farClip, camera.projectionMatrix);
+        pufMatrixProjectOrtho(camera.viewportWidth, camera.viewportHeight, nearClip, farClip, camera.projectionMatrix);
     else // perspective projection
-        pufMatrixProjectPersp(fov, viewportWidth, viewportHeight, nearClip, farClip, camera.projectionMatrix);
+        pufMatrixProjectPersp(fov, camera.viewportWidth, camera.viewportHeight, nearClip, farClip, camera.projectionMatrix);
      
-    for (int32_t i = 0; i < 15; i++)
+    for (int i = 0; i < 15; i++)
 		camera.cameraMatrix[i] = 0.0f;
     
     camera.cameraMatrix[0] = 1.0f;
@@ -36,7 +36,7 @@ PUFcamera pufCameraInit(float fov, float nearClip, float farClip)
     camera.cameraMatrix[10] = 1.0f;
     camera.cameraMatrix[15] = 1.0f;
 	
-	for (int32_t i = 0; i < 15; i++)
+	for (int i = 0; i < 15; i++)
 		camera.translationMatrix[i] = 0.0f;
     
     camera.translationMatrix[0] = 1.0f;
@@ -44,9 +44,9 @@ PUFcamera pufCameraInit(float fov, float nearClip, float farClip)
     camera.translationMatrix[10] = 1.0f;
     camera.translationMatrix[15] = 1.0f;
 
-	for (int32_t i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 		camera.cameraTranslation[i] = 0.0f;
-	for (int32_t i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 		camera.cameraRotation[i] = 0.0f;
 	camera.cameraRotation[3] = 1.0f;
 
