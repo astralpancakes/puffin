@@ -1,9 +1,11 @@
-void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
+PUFcamera pufCameraInit(float fov, float nearClip, float farClip)
 {
-    //camera->window = window;
-    //camera->width = window->windowWidth;
-    //camera->height = window->windowHeight;
-    //glViewport(0,0, camera->width,camera->height);
+    PUFcamera camera;
+
+    //camera.window = window;
+    //camera.width = window.windowWidth;
+    //camera.height = window.windowHeight;
+    //glViewport(0,0, camera.width,camera.height);
 
     /* set OpenGL stuff to something sensible */
 	
@@ -18,36 +20,37 @@ void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip)
 	
     GLint viewportDims[4] = {0};
     glGetIntegerv(GL_VIEWPORT, viewportDims);
-    int viewportWidth = viewportDims[2];
-    int viewportHeight = viewportDims[3];
+    int32_t viewportWidth = viewportDims[2];
+    int32_t viewportHeight = viewportDims[3];
     
     if (fov == 0.0) // orthographic projection
-        pufMatrixProjectOrtho(viewportWidth, viewportHeight, nearClip, farClip, camera->projectionMatrix);
+        pufMatrixProjectOrtho(viewportWidth, viewportHeight, nearClip, farClip, camera.projectionMatrix);
     else // perspective projection
-        pufMatrixProjectPersp(fov, viewportWidth, viewportHeight, nearClip, farClip, camera->projectionMatrix);
+        pufMatrixProjectPersp(fov, viewportWidth, viewportHeight, nearClip, farClip, camera.projectionMatrix);
+     
+    for (int32_t i = 0; i < 15; i++)
+		camera.cameraMatrix[i] = 0.0f;
     
-    int i;
-    for (i=0;i < 15; i++)
-		camera->cameraMatrix[i] = 0.0f;
-    
-    camera->cameraMatrix[0] = 1.0f;
-    camera->cameraMatrix[5] = 1.0f;
-    camera->cameraMatrix[10] = 1.0f;
-    camera->cameraMatrix[15] = 1.0f;
+    camera.cameraMatrix[0] = 1.0f;
+    camera.cameraMatrix[5] = 1.0f;
+    camera.cameraMatrix[10] = 1.0f;
+    camera.cameraMatrix[15] = 1.0f;
 	
-	for (i=0;i < 15; i++)
-		camera->translationMatrix[i] = 0.0f;
+	for (int32_t i = 0; i < 15; i++)
+		camera.translationMatrix[i] = 0.0f;
     
-    camera->translationMatrix[0] = 1.0f;
-    camera->translationMatrix[5] = 1.0f;
-    camera->translationMatrix[10] = 1.0f;
-    camera->translationMatrix[15] = 1.0f;
+    camera.translationMatrix[0] = 1.0f;
+    camera.translationMatrix[5] = 1.0f;
+    camera.translationMatrix[10] = 1.0f;
+    camera.translationMatrix[15] = 1.0f;
 
-	for (i=0; i<3; i++)
-		camera->cameraTranslation[i] = 0.0f;
-	for (i=0; i<4; i++)
-		camera->cameraRotation[i] = 0.0f;
-	camera->cameraRotation[3] = 1.0f;
+	for (int32_t i = 0; i < 3; i++)
+		camera.cameraTranslation[i] = 0.0f;
+	for (int32_t i = 0; i < 4; i++)
+		camera.cameraRotation[i] = 0.0f;
+	camera.cameraRotation[3] = 1.0f;
+
+    return camera;
 }
 
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z)

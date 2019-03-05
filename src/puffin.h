@@ -138,8 +138,8 @@ typedef struct
     GLfloat cameraScale[3];
 	GLfloat cameraTranslation[3];
 	GLfloat cameraRotation[4];
-    int width;
-    int height;
+    int32_t width;
+    int32_t height;
 	float nearClip;
 	float farClip;
 
@@ -159,16 +159,16 @@ void pufPointerMotionCallback(PUFwindow* window, void (*func)(float,float,float,
 */
 
 // camera.c
-void pufCameraInit(PUFcamera* camera, float fov, float nearClip, float farClip);
+PUFcamera pufCameraInit(float fov, float nearClip, float farClip);
 void pufCameraTranslate(PUFcamera* camera, float X, float Y, float Z);
 void pufCameraRotate(PUFcamera* camera, float angle, float vectorX, float vectorY, float vectorZ);
 void pufCameraRotateEuler(PUFcamera* camera, float angleX, float angleY, float angleZ);
 void pufCameraRotateEulerDegrees(PUFcamera* camera, float angleX, float angleY, float angleZ);
 
 // mesh.c
+PUFmesh pufMeshShapeQuad();
+PUFmesh pufMeshLoadOBJ(char const* file);
 void pufMeshInit(PUFmesh* mesh);
-void pufMeshShapeQuad(PUFmesh* mesh);
-void pufMeshLoadOBJ(PUFmesh* mesh, char const* file);
 void pufMeshBind(PUFmesh* mesh);
 void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframebuffer* framebuffer);
 void pufMeshDestroy(PUFmesh* mesh);

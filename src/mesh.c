@@ -13,87 +13,99 @@ void pufMeshInit(PUFmesh* mesh)
 }
 
 /* generates a nicely generic quad */
-void pufMeshShapeQuad(PUFmesh* mesh)
+PUFmesh pufMeshShapeQuad()
 {
-	mesh->vertexCount = 6;
-	mesh->verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
-	mesh->verts[0].position[0] = -1.0f;
-	mesh->verts[0].position[1] = 1.0f;
-	mesh->verts[0].position[2] = 0.0f;
-	mesh->verts[0].texture[0] = 0.0f;
-	mesh->verts[0].texture[1] = 1.0f;
-	mesh->verts[0].texture[2] = 0.0f;
+    PUFmesh mesh;
+
+    pufMeshInit(&mesh);
+
+	mesh.vertexCount = 6;
+	mesh.verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh.vertexCount);
+	mesh.verts[0].position[0] = -1.0f;
+	mesh.verts[0].position[1] = 1.0f;
+	mesh.verts[0].position[2] = 0.0f;
+	mesh.verts[0].texture[0] = 0.0f;
+	mesh.verts[0].texture[1] = 1.0f;
+	mesh.verts[0].texture[2] = 0.0f;
 	
-	mesh->verts[1].position[0] = -1.0f;
-	mesh->verts[1].position[1] = -1.0f;
-	mesh->verts[1].position[2] = 0.0f;
-	mesh->verts[1].texture[0] = 0.0f;
-	mesh->verts[1].texture[1] = 0.0f;
-	mesh->verts[1].texture[2] = 0.0f;
+	mesh.verts[1].position[0] = -1.0f;
+	mesh.verts[1].position[1] = -1.0f;
+	mesh.verts[1].position[2] = 0.0f;
+	mesh.verts[1].texture[0] = 0.0f;
+	mesh.verts[1].texture[1] = 0.0f;
+	mesh.verts[1].texture[2] = 0.0f;
 	
-	mesh->verts[2].position[0] = 1.0f;
-	mesh->verts[2].position[1] = -1.0f;
-	mesh->verts[2].position[2] = 0.0f;
-	mesh->verts[2].texture[0] = 1.0f;
-	mesh->verts[2].texture[1] = 0.0f;
-	mesh->verts[2].texture[2] = 0.0f;
+	mesh.verts[2].position[0] = 1.0f;
+	mesh.verts[2].position[1] = -1.0f;
+	mesh.verts[2].position[2] = 0.0f;
+	mesh.verts[2].texture[0] = 1.0f;
+	mesh.verts[2].texture[1] = 0.0f;
+	mesh.verts[2].texture[2] = 0.0f;
 	
-	mesh->verts[3].position[0] = -1.0f;
-	mesh->verts[3].position[1] = 1.0f;
-	mesh->verts[3].position[2] = 0.0f;
-	mesh->verts[3].texture[0] = 0.0f;
-	mesh->verts[3].texture[1] = 1.0f;
-	mesh->verts[3].texture[2] = 0.0f;
+	mesh.verts[3].position[0] = -1.0f;
+	mesh.verts[3].position[1] = 1.0f;
+	mesh.verts[3].position[2] = 0.0f;
+	mesh.verts[3].texture[0] = 0.0f;
+	mesh.verts[3].texture[1] = 1.0f;
+	mesh.verts[3].texture[2] = 0.0f;
 	
-	mesh->verts[4].position[0] = 1.0f;
-	mesh->verts[4].position[1] = -1.0f;
-	mesh->verts[4].position[2] = 0.0f;
-	mesh->verts[4].texture[0] = 1.0f;
-	mesh->verts[4].texture[1] = 0.0f;
-	mesh->verts[4].texture[2] = 0.0f;
+	mesh.verts[4].position[0] = 1.0f;
+	mesh.verts[4].position[1] = -1.0f;
+	mesh.verts[4].position[2] = 0.0f;
+	mesh.verts[4].texture[0] = 1.0f;
+	mesh.verts[4].texture[1] = 0.0f;
+	mesh.verts[4].texture[2] = 0.0f;
 	
-	mesh->verts[5].position[0] = 1.0f;
-	mesh->verts[5].position[1] = 1.0f;
-	mesh->verts[5].position[2] = 0.0f;
-	mesh->verts[5].texture[0] = 1.0f;
-	mesh->verts[5].texture[1] = 1.0f;
-	mesh->verts[5].texture[2] = 0.0f;
+	mesh.verts[5].position[0] = 1.0f;
+	mesh.verts[5].position[1] = 1.0f;
+	mesh.verts[5].position[2] = 0.0f;
+	mesh.verts[5].texture[0] = 1.0f;
+	mesh.verts[5].texture[1] = 1.0f;
+	mesh.verts[5].texture[2] = 0.0f;
 	
     int i;
-	for (i=0;i<mesh->vertexCount;++i)
+	for (i=0;i<mesh.vertexCount;++i)
 	{
-		mesh->verts[i].color[0] = ((float)(rand() % 100))/100;
-        mesh->verts[i].color[1] = (float)(rand() % 100)/100;
-        mesh->verts[i].color[2] = (float)(rand() % 100)/100;
-        mesh->verts[i].normal[0] = 0.0f;
-        mesh->verts[i].normal[1] = 0.0f;
-        mesh->verts[i].normal[2] = 1.0f;
+		mesh.verts[i].color[0] = ((float)(rand() % 100))/100;
+        mesh.verts[i].color[1] = (float)(rand() % 100)/100;
+        mesh.verts[i].color[2] = (float)(rand() % 100)/100;
+        mesh.verts[i].normal[0] = 0.0f;
+        mesh.verts[i].normal[1] = 0.0f;
+        mesh.verts[i].normal[2] = 1.0f;
 	}
+
+    return mesh;
+
 }
 
 /* loads an OBJ file into Puffin mesh */
-void pufMeshLoadOBJ(PUFmesh* mesh, char const* file) 
+PUFmesh pufMeshLoadOBJ(char const* file) 
 {
-    GLfloat* obj = pufLoadOBJ(file, &mesh->vertexCount);
-    mesh->verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh->vertexCount);
+    PUFmesh mesh;
+
+    pufMeshInit(&mesh);
+
+    GLfloat* obj = pufLoadOBJ(file, &mesh.vertexCount);
+    mesh.verts = (PUFvertex*)malloc(sizeof(PUFvertex)*mesh.vertexCount);
 
     int i;
-    for (i=0;i<mesh->vertexCount;++i)
+    for (i=0;i<mesh.vertexCount;++i)
     {
-        mesh->verts[i].position[0] = obj[i*9+0];
-        mesh->verts[i].position[1] = obj[i*9+1];
-        mesh->verts[i].position[2] = obj[i*9+2];
-        mesh->verts[i].color[0] = ((float)(rand() % 100))/100;
-        mesh->verts[i].color[1] = (float)(rand() % 100)/100;
-        mesh->verts[i].color[2] = (float)(rand() % 100)/100;
-        mesh->verts[i].texture[0] = obj[i*9+3];
-        mesh->verts[i].texture[1] = obj[i*9+4];
-        mesh->verts[i].texture[2] = obj[i*9+5];
-        mesh->verts[i].normal[0] = obj[i*9+6];
-        mesh->verts[i].normal[1] = obj[i*9+7];
-        mesh->verts[i].normal[2] = obj[i*9+8];
+        mesh.verts[i].position[0] = obj[i*9+0];
+        mesh.verts[i].position[1] = obj[i*9+1];
+        mesh.verts[i].position[2] = obj[i*9+2];
+        mesh.verts[i].color[0] = ((float)(rand() % 100))/100;
+        mesh.verts[i].color[1] = (float)(rand() % 100)/100;
+        mesh.verts[i].color[2] = (float)(rand() % 100)/100;
+        mesh.verts[i].texture[0] = obj[i*9+3];
+        mesh.verts[i].texture[1] = obj[i*9+4];
+        mesh.verts[i].texture[2] = obj[i*9+5];
+        mesh.verts[i].normal[0] = obj[i*9+6];
+        mesh.verts[i].normal[1] = obj[i*9+7];
+        mesh.verts[i].normal[2] = obj[i*9+8];
     }
     free((void*)obj);
+    return mesh;
 }
 
 /* uploads Puffin mesh vertex buffer object */

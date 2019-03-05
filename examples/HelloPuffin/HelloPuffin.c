@@ -27,26 +27,24 @@ void setup() // setup() is run once at program start
 {
     printf("Supported GLSL version is %s.\n", (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-	pufCameraInit(&camera, 50.0f, 0.1f, 100.0f);
+	camera = pufCameraInit(50.0f, 0.1f, 100.0f);
 	
-	// init meshes
-    pufMeshInit(&objectMesh);
-	pufMeshInit(&framebufferMesh);
     // from a .obj file, load a 3D object we can render and create a quad for displaying the framebuffer texture we will render to
-	pufMeshLoadOBJ(&objectMesh, "../../mesh/solid.obj");
-	pufMeshShapeQuad(&framebufferMesh);
-	// bind both meshes, ie send them to the GPU
+	objectMesh = pufMeshLoadOBJ("../../mesh/solid.obj");
+	framebufferMesh = pufMeshShapeQuad();
+	
+    // bind both meshes, ie send them to the GPU
     pufMeshBind(&objectMesh);
 	pufMeshBind(&framebufferMesh);
-	
-    // load a .bmp file for texturing our object and create an empty texture for rendering the framebuffer
-    pufTextureLoadBMP(&objectTexture, "../../texture/puffin.bmp");
-	pufTextureCreate(&framebufferTexture,width,height);
 	
     // move and rotate our object a bit
 	pufMeshTranslate(&objectMesh,0.0f,0.0f,-1.0f);
 	pufMeshRotateEuler(&objectMesh,0.0f,0.0f,-55.0f,DEGREES);
 
+    // load a .bmp file for texturing our object and create an empty texture for rendering the framebuffer
+    pufTextureLoadBMP(&objectTexture, "../../texture/puffin.bmp");
+	pufTextureCreate(&framebufferTexture,width,height);
+	
     // load some shader code for our object and framebuffer
 	pufShaderLoad(&objectShader, "../../shader/vsMeshBasic.glsl", "../../shader/fsMeshTextureLitDiffuse.glsl");
 	pufShaderLoad(&framebufferShader, "../../shader/vsFrameBasic.glsl", "../../shader/fsFrameFilmic.glsl");
