@@ -1,12 +1,14 @@
-void pufFramebufferInit(PUFframebuffer* framebuffer)
+PUFframebuffer pufFramebufferInit()
 {
-    glGenFramebuffers(1, &framebuffer->framebufferId);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->framebufferId);
-    glGenRenderbuffers(1, &framebuffer->depthbufferId);
+    PUFframebuffer framebuffer;
+    glGenFramebuffers(1, &framebuffer.framebufferId);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.framebufferId);
+    glGenRenderbuffers(1, &framebuffer.depthbufferId);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    framebuffer->textureIsAttached = 0;
+    framebuffer.textureIsAttached = 0;
+    return framebuffer;
 }
 
 void pufFramebufferTexture(PUFframebuffer* framebuffer, PUFtexture* texture)

@@ -46,8 +46,8 @@ void setup() // setup() is run once at program start
 	framebufferTexture = pufTextureCreate(width,height);
 	
     // load some shader code for our object and framebuffer
-	pufShaderLoad(&objectShader, "../../shader/vsMeshBasic.glsl", "../../shader/fsMeshTextureLitDiffuse.glsl");
-	pufShaderLoad(&framebufferShader, "../../shader/vsFrameBasic.glsl", "../../shader/fsFrameFilmic.glsl");
+	objectShader = pufShaderLoad("../../shader/vsMeshBasic.glsl", "../../shader/fsMeshTextureLitDiffuse.glsl");
+	framebufferShader = pufShaderLoad("../../shader/vsFrameBasic.glsl", "../../shader/fsFrameFilmic.glsl");
 
     // set some shader parameters
     pufShaderUniform4fSet(&objectShader, "baseColor", 1.0f, 1.0f, 1.0f, 1.0f);
@@ -55,7 +55,7 @@ void setup() // setup() is run once at program start
     pufShaderUniform3fSet(&objectShader, "lightColor", 0.9f, 0.6f, 0.0f);
 
     // init our framebuffer and give it the texture we want it to render to
-	pufFramebufferInit(&framebuffer);
+	framebuffer = pufFramebufferInit();
 	pufFramebufferTexture(&framebuffer,&framebufferTexture);
 
     // set the clear color white

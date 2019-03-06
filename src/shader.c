@@ -1,6 +1,7 @@
 /* loads shader from GLSL source files, compiles and links shader program */
-void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
+PUFshader pufShaderLoad(char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
 {
+    PUFshader shader;
 
 		GLint vertexShaderCompileSuccess = 0; 
         GLint fragmentShaderCompileSuccess = 0;
@@ -53,20 +54,20 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 		
 		if (fragmentShaderCompileSuccess && vertexShaderCompileSuccess)
 		{
-			shader->shaderProgram = glCreateProgram();
-			glAttachShader(shader->shaderProgram,vertexShader);
-			glAttachShader(shader->shaderProgram,fragmentShader);
-			glLinkProgram(shader->shaderProgram);
-			glGetProgramiv(shader->shaderProgram, GL_LINK_STATUS, &shaderLinkSuccess);
+			shader.shaderProgram = glCreateProgram();
+			glAttachShader(shader.shaderProgram,vertexShader);
+			glAttachShader(shader.shaderProgram,fragmentShader);
+			glLinkProgram(shader.shaderProgram);
+			glGetProgramiv(shader.shaderProgram, GL_LINK_STATUS, &shaderLinkSuccess);
 			if (shaderLinkSuccess == GL_FALSE)
 			{
 				printf("Shader program linking of %s and %s failed:", vertexShaderSourceFile, fragmentShaderSourceFile);
 				GLint maxLength = 0;
-				glGetProgramiv(shader->shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+				glGetProgramiv(shader.shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
 				GLchar* errorLog = (GLchar*)malloc(maxLength*sizeof(GLchar));
-				glGetProgramInfoLog(shader->shaderProgram, maxLength, &maxLength, errorLog);
+				glGetProgramInfoLog(shader.shaderProgram, maxLength, &maxLength, errorLog);
 				printf("%s", errorLog);
-				glDeleteProgram(shader->shaderProgram);
+				glDeleteProgram(shader.shaderProgram);
 			}
 		}
 		
@@ -75,13 +76,18 @@ void pufShaderLoad(PUFshader* shader, char const* vertexShaderSourceFile, char c
 		glDeleteShader(fragmentShader);
 		
         // zero shader uniforms
-        shader->uniformTime = 0.0f;
-        shader->uniformTimeDelta = 0.0f;
-        shader->uniformFrame = 0.0f;
+        shader.uniformTime = 0.0f;
+        shader.uniformTimeDelta = 0.0f;
+        shader.uniformFrame = 0.0f;
+
+    return shader;
 } 
 
-void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char const* fragmentShaderSource)
+PUFshader pufShaderCreate(char const* vertexShaderSource, char const* fragmentShaderSource)
 {
+
+    // Only ever used this for ruling out file read errors, needs error handling for serious use.
+    PUFshader shader;
 
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -92,11 +98,12 @@ void pufShaderCreate(PUFshader* shader, char const* vertexShaderSource, char con
 	glShaderSource(fragmentShader,1,&fragmentShaderSource,NULL);
 	glCompileShader(fragmentShader);
 	
-	shader->shaderProgram = glCreateProgram();
-	glAttachShader(shader->shaderProgram,vertexShader);
-	glAttachShader(shader->shaderProgram,fragmentShader);
-	glLinkProgram(shader->shaderProgram);
+	shader.shaderProgram = glCreateProgram();
+	glAttachShader(shader.shaderProgram,vertexShader);
+	glAttachShader(shader.shaderProgram,fragmentShader);
+	glLinkProgram(shader.shaderProgram);
 	
+    return shader;
 }
 
 #define TOKEN(...) __VA_ARGS__
