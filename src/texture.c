@@ -78,9 +78,9 @@ PUFtexture pufTextureLoadBMP(char const* file) //loads BMP file into Puffin text
         texture.width = 1;
         texture.height = 1;
         texture.pixels = (GLfloat*)malloc(texture.height*texture.width*4*sizeof(GL_FLOAT));
-        texture.pixels[0] = 0.0f;
-		for (int i = 1; i<4; i++)
+		for (int i = 0; i<4; i++)
             texture.pixels[i] = 1.0f;
+        texture.pixels[2] = 0.0f;
     }
     
      texture.textureFormat = GL_RGBA;
@@ -123,29 +123,29 @@ PUFtexture pufTextureCreate(uint32_t width, uint32_t height) //creates blank Puf
     return texture;
 }
 
-void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color)
+void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor color)
 {
-    if (color->R < 0.0f)
-        color->R = 0.0f;
-    if (color->G < 0.0f)
-        color->G = 0.0f;
-    if (color->B < 0.0f)
-        color->B = 0.0f;
-    if (color->A < 0.0f)
-        color->A = 0.0f;
+    if (color.R < 0.0f)
+        color.R = 0.0f;
+    if (color.G < 0.0f)
+        color.G = 0.0f;
+    if (color.B < 0.0f)
+        color.B = 0.0f;
+    if (color.A < 0.0f)
+        color.A = 0.0f;
     if (texture->textureFormat == GL_BGRA)
     {
-        texture->pixels[y*texture->width*4+x*4] = color->B;
-        texture->pixels[y*texture->width*4+x*4+1] = color->G;
-        texture->pixels[y*texture->width*4+x*4+2] = color->R;
-        texture->pixels[y*texture->width*4+x*4+3] = color->A;
+        texture->pixels[y*texture->width*4+x*4] = color.B;
+        texture->pixels[y*texture->width*4+x*4+1] = color.G;
+        texture->pixels[y*texture->width*4+x*4+2] = color.R;
+        texture->pixels[y*texture->width*4+x*4+3] = color.A;
     }
     else
     {
-        texture->pixels[y*texture->width*4+x*4] = color->R;
-        texture->pixels[y*texture->width*4+x*4+1] = color->G;
-        texture->pixels[y*texture->width*4+x*4+2] = color->B;
-        texture->pixels[y*texture->width*4+x*4+3] = color->A;
+        texture->pixels[y*texture->width*4+x*4] = color.R;
+        texture->pixels[y*texture->width*4+x*4+1] = color.G;
+        texture->pixels[y*texture->width*4+x*4+2] = color.B;
+        texture->pixels[y*texture->width*4+x*4+3] = color.A;
     }
 }
 
@@ -165,6 +165,35 @@ PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y)
         color.G = texture->pixels[y*texture->width*4+x*4+1];
         color.B = texture->pixels[y*texture->width*4+x*4+2];
         color.A = texture->pixels[y*texture->width*4+x*4+3];
+    }
+    if (color.R < 0.0f)
+        color.R = 0.0f;
+    if (color.G < 0.0f)
+        color.G = 0.0f;
+    if (color.B < 0.0f)
+        color.B = 0.0f;
+    if (color.A < 0.0f)
+        color.A = 0.0f;
+    return color;
+}
+
+PUFcolor pufTexturePixelGetByIndex(PUFtexture* texture, GLuint i) 
+{
+    i = i % texture->width*texture->height;
+    PUFcolor color;
+    if (texture->textureFormat == GL_BGRA)
+    {
+        color.B = texture->pixels[i*4];
+        color.G = texture->pixels[i+1];
+        color.R = texture->pixels[i+2];
+        color.A =texture->pixels[i+3];
+    }
+    else
+    {
+        color.R = texture->pixels[i*4];
+        color.G = texture->pixels[i+1];
+        color.B = texture->pixels[i+2];
+        color.A = texture->pixels[i+3];
     }
     if (color.R < 0.0f)
         color.R = 0.0f;

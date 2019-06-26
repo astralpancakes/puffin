@@ -1,3 +1,5 @@
+#include "puffin.h"
+
 /* loads shader from GLSL source files, compiles and links shader program */
 PUFshader pufShaderLoad(char const* vertexShaderSourceFile, char const* fragmentShaderSourceFile)
 {

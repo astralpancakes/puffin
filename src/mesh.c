@@ -1,4 +1,5 @@
 
+
 /* zero the transformations of the mesh */
 void pufMeshInit(PUFmesh* mesh) 
 {
@@ -72,6 +73,8 @@ PUFmesh pufMeshShapeQuad()
         mesh.verts[i].normal[2] = 1.0f;
 	}
 
+    mesh.isBound = GL_FALSE;
+
     return mesh;
 
 }
@@ -112,120 +115,124 @@ void pufMeshBind(PUFmesh* mesh)
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(PUFvertex)*mesh->vertexCount, NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(PUFvertex)*mesh->vertexCount, mesh->verts);	
+    mesh->isBound = GL_TRUE;
 }
 
 /* draws Puffin mesh */
 void pufMeshRender(PUFmesh* mesh, PUFcamera* camera, PUFshader* shader, PUFframebuffer* framebuffer) 
 {
-    GLint fbHeight;
-    GLint fbWidth;
-
-    if (framebuffer)
+    if (mesh->isBound)
     {
-        pufFramebufferBindAndClear(framebuffer);
-        // get framebuffer dimensions
-        fbWidth = framebuffer->width;
-        fbHeight = framebuffer->height;
-    }
-    else
-    {
-        // we're drawing to the default framebuffer, find out its width and height
-        GLint dims[4] = {0};
-        glGetIntegerv(GL_VIEWPORT, dims);
-        fbWidth = dims[2];
-        fbHeight = dims[3];
-    }
+        GLint fbHeight;
+        GLint fbWidth;
 
-    glUseProgram(shader->shaderProgram);
-	
+        if (framebuffer)
+        {
+            pufFramebufferBindAndClear(framebuffer);
+            // get framebuffer dimensions
+            fbWidth = framebuffer->width;
+            fbHeight = framebuffer->height;
+        }
+        else
+        {
+            // we're drawing to the default framebuffer, find out its width and height
+            GLint dims[4] = {0};
+            glGetIntegerv(GL_VIEWPORT, dims);
+            fbWidth = dims[2];
+            fbHeight = dims[3];
+        }
 
-    GLint uniformModelviewProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewProjectionMatrix");
-    GLint uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
-    GLint uniformModelViewMatrix = glGetUniformLocation(shader->shaderProgram, "modelViewMatrix");
-    //GLint uniformRenderTargetWidth = glGetUniformLocation(shader->shaderProgram, "renderTargetWidth");
-    //GLint uniformRenderTargetHeight = glGetUniformLocation(shader->shaderProgram, "renderTargetHeight");
-    //GLint uniformRenderTargetSize = glGetUniformLocation(shader->shaderProgram, "renderTargetSize");
-    GLint uniformLocResolution = glGetUniformLocation(shader->shaderProgram, "iResolution");
-    GLint uniformTime = glGetUniformLocation(shader->shaderProgram, "iTime");
+        glUseProgram(shader->shaderProgram);
+        
 
-    GLfloat modelMatrix[16];
-    GLfloat viewMatrix[16];
-    GLfloat modelviewMatrix[16];
+        GLint uniformModelviewProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "modelviewProjectionMatrix");
+        GLint uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
+        GLint uniformModelViewMatrix = glGetUniformLocation(shader->shaderProgram, "modelViewMatrix");
+        //GLint uniformRenderTargetWidth = glGetUniformLocation(shader->shaderProgram, "renderTargetWidth");
+        //GLint uniformRenderTargetHeight = glGetUniformLocation(shader->shaderProgram, "renderTargetHeight");
+        //GLint uniformRenderTargetSize = glGetUniformLocation(shader->shaderProgram, "renderTargetSize");
+        GLint uniformLocResolution = glGetUniformLocation(shader->shaderProgram, "iResolution");
+        GLint uniformTime = glGetUniformLocation(shader->shaderProgram, "iTime");
 
-    GLfloat modelviewProjectionMatrix[16];
+        GLfloat modelMatrix[16];
+        GLfloat viewMatrix[16];
+        GLfloat modelviewMatrix[16];
 
-	GLfloat tempMatrix[16];
-    GLfloat translationMatrix[16];
-    GLfloat scalingMatrix[16];
-    GLfloat rotationMatrix[16];
+        GLfloat modelviewProjectionMatrix[16];
 
-// TODO: The following could be made clearer by calculating the matrices and multiplying them together as separate steps. 
-// Consider making the pufMatrix* functions not return anything since they need the return value pointer passed as an argument anyway.
+        GLfloat tempMatrix[16];
+        GLfloat translationMatrix[16];
+        GLfloat scalingMatrix[16];
+        GLfloat rotationMatrix[16];
 
-    pufMatrixMult(
-        pufMatrixTranslate(mesh->meshTranslation[0],mesh->meshTranslation[1],mesh->meshTranslation[2],translationMatrix),
+    // TODO: The following could be made clearer by calculating the matrices and multiplying them together as separate steps. 
+    // Consider making the pufMatrix* functions not return anything since they need the return value pointer passed as an argument anyway.
+
         pufMatrixMult(
-            pufMatrixScale(mesh->meshScale[0],mesh->meshScale[1],mesh->meshScale[2],scalingMatrix),
-            pufMatrixFromQuaternion(mesh->meshRotation[0],mesh->meshRotation[1],mesh->meshRotation[2],mesh->meshRotation[3],rotationMatrix),
-            tempMatrix
-        ),
-        modelMatrix
-    );
+            pufMatrixTranslate(mesh->meshTranslation[0],mesh->meshTranslation[1],mesh->meshTranslation[2],translationMatrix),
+            pufMatrixMult(
+                pufMatrixScale(mesh->meshScale[0],mesh->meshScale[1],mesh->meshScale[2],scalingMatrix),
+                pufMatrixFromQuaternion(mesh->meshRotation[0],mesh->meshRotation[1],mesh->meshRotation[2],mesh->meshRotation[3],rotationMatrix),
+                tempMatrix
+            ),
+            modelMatrix
+        );
 
-    pufMatrixMult(
-        pufMatrixTranslate(-camera->cameraTranslation[0], -camera->cameraTranslation[1], -camera->cameraTranslation[2], translationMatrix),
-        pufMatrixFromQuaternion(-camera->cameraRotation[0], -camera->cameraRotation[1],-camera->cameraRotation[2], -camera->cameraRotation[3], rotationMatrix),
-        viewMatrix
-    );
+        pufMatrixMult(
+            pufMatrixTranslate(-camera->cameraTranslation[0], -camera->cameraTranslation[1], -camera->cameraTranslation[2], translationMatrix),
+            pufMatrixFromQuaternion(-camera->cameraRotation[0], -camera->cameraRotation[1],-camera->cameraRotation[2], -camera->cameraRotation[3], rotationMatrix),
+            viewMatrix
+        );
 
-    pufMatrixMult(viewMatrix, modelMatrix, modelviewMatrix);
-    pufMatrixMult(camera->projectionMatrix, modelviewMatrix, modelviewProjectionMatrix);
+        pufMatrixMult(viewMatrix, modelMatrix, modelviewMatrix);
+        pufMatrixMult(camera->projectionMatrix, modelviewMatrix, modelviewProjectionMatrix);
 
-    glUniformMatrix4fv(uniformModelviewProjectionMatrix, 1, GL_FALSE, modelviewProjectionMatrix);
-    glUniformMatrix4fv(uniformModelViewMatrix, 1, GL_FALSE, modelviewMatrix);
-    glUniformMatrix4fv(uniformModelMatrix, 1, GL_FALSE, modelMatrix);
-    
-	glUniform3f(uniformLocResolution, (GLfloat)fbWidth, (GLfloat)fbHeight, 1.0f);
-    //glUniform1i(uniformRenderTargetWidth, fbWidth);
-    //glUniform1i(uniformRenderTargetHeight, fbHeight);
-    //glUniform2f(uniformRenderTargetSize, (float)camera->width, (float)camera->height);
-    glUniform1f(uniformTime, shader->uniformTime);
-    //glUniform1f(uniformTime, 1.0f);
-	
-	// dummy vertex array object for compatibility (https://stackoverflow.com/questions/24643027/opengl-invalid-operation-following-glenablevertexattribarray)
-	GLuint vaoId = 0;
-	glGenVertexArrays(1, &vaoId);
-	glBindVertexArray(vaoId);
-	
-	glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glEnableVertexAttribArray(3);
-    glEnableVertexAttribArray(4);
-    glEnableVertexAttribArray(5);
-	
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
-	
-	
-    glVertexAttribPointer(0, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0); // vertex position
-    glVertexAttribPointer(1, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3)); // vertex color
-    glVertexAttribPointer(2, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6)); // vertex texture coordinates (UV)
-    glVertexAttribPointer(3, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9)); // vertex normal
-    glVertexAttribPointer(4, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12)); // vertex data 3f (normally unused)
-    glVertexAttribPointer(5, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15)); // vertex data 1f (normally unused)
-	
-    glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
-		
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glUniformMatrix4fv(uniformModelviewProjectionMatrix, 1, GL_FALSE, modelviewProjectionMatrix);
+        glUniformMatrix4fv(uniformModelViewMatrix, 1, GL_FALSE, modelviewMatrix);
+        glUniformMatrix4fv(uniformModelMatrix, 1, GL_FALSE, modelMatrix);
+        
+        glUniform3f(uniformLocResolution, (GLfloat)fbWidth, (GLfloat)fbHeight, 1.0f);
+        //glUniform1i(uniformRenderTargetWidth, fbWidth);
+        //glUniform1i(uniformRenderTargetHeight, fbHeight);
+        //glUniform2f(uniformRenderTargetSize, (float)camera->width, (float)camera->height);
+        glUniform1f(uniformTime, shader->uniformTime);
+        //glUniform1f(uniformTime, 1.0f);
+        
+        // dummy vertex array object for compatibility (https://stackoverflow.com/questions/24643027/opengl-invalid-operation-following-glenablevertexattribarray)
+        GLuint vaoId = 0;
+        glGenVertexArrays(1, &vaoId);
+        glBindVertexArray(vaoId);
+        
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(3);
+        glEnableVertexAttribArray(4);
+        glEnableVertexAttribArray(5);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+        
+        
+        glVertexAttribPointer(0, 3, GL_FLOAT, 1, sizeof(PUFvertex), (void*)0); // vertex position
+        glVertexAttribPointer(1, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*3)); // vertex color
+        glVertexAttribPointer(2, 2, GL_FLOAT, 0 , sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*6)); // vertex texture coordinates (UV)
+        glVertexAttribPointer(3, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*9)); // vertex normal
+        glVertexAttribPointer(4, 3, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*12)); // vertex data 3f (normally unused)
+        glVertexAttribPointer(5, 1, GL_FLOAT, 0, sizeof(PUFvertex), ((char*)NULL) + (sizeof(GLfloat)*15)); // vertex data 1f (normally unused)
+        
+        glDrawArrays(GL_TRIANGLES,0,mesh->vertexCount);
+            
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glUseProgram(0);
+        glUseProgram(0);
 
-    if (framebuffer)
-    {
-        pufFramebufferUnbind();
+        if (framebuffer)
+        {
+            pufFramebufferUnbind();
+        }
+        
     }
-	
-
+    else printf("Tried to render unbound mesh\n");
 }
 
 /* translates Puffin mesh */

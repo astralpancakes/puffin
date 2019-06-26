@@ -8,6 +8,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdlib.h>
 
 //Generic 4D vector
 typedef struct {
@@ -81,6 +82,7 @@ typedef struct
 	GLfloat meshTranslation[3];
 	GLfloat meshRotation[4];
     //GLfloat modelView[16];
+    GLboolean isBound;
 }
 PUFmesh;
 
@@ -181,8 +183,9 @@ void pufMeshScale(PUFmesh* mesh, float X,float Y,float Z);
 // texture.c
 PUFtexture pufTextureLoadBMP(char const* file);
 PUFtexture pufTextureCreate(unsigned int width, unsigned int height);
-void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor* color);
+void pufTexturePixelSet(PUFtexture* texture, GLuint x, GLuint y, PUFcolor color);
 PUFcolor pufTexturePixelGet(PUFtexture* texture, GLuint x, GLuint y);
+PUFcolor pufTexturePixelGetByIndex(PUFtexture* texture, GLuint i);
 void pufTextureClear(PUFtexture* texture);
 void pufTextureUpdate(PUFtexture* texture);
 void pufTextureBind(PUFtexture* texture);
@@ -208,7 +211,7 @@ char* pufReadFile(char const* file);
 int pufClampi(int value, int min, int max);
 float pufClampf(float value, float min, float max);
 PUFvec4 pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units);
-void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A);
+PUFcolor pufColorFromRGBA(GLfloat R, GLfloat G, GLfloat B, GLfloat A);
 
 // matrix.c
 float* pufMatrixTranslate(float, float, float, float*);

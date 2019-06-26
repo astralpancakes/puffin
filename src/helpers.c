@@ -68,8 +68,10 @@ PUFvector pufVectorFromAngle(double pitch, double yaw, PUF_ANGLE_UNITS units)
 
 
 
-void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat A)
+PUFcolor pufColorFromRGBA(GLfloat R, GLfloat G, GLfloat B, GLfloat A)
 {
+    PUFcolor color;
+
     if (R < 0.0f)
         R = 0.0f;
     if (G < 0.0f)
@@ -78,8 +80,10 @@ void pufColorFromRGBA(PUFcolor* color, GLfloat R, GLfloat G, GLfloat B, GLfloat 
         B = 0.0f;
     if (A < 0.0f)
         A = 0.0f;
-    color->R = R;
-    color->G = G;
-    color->B = B;
-    color->A = A;
+    color.R = R;
+    color.G = G;
+    color.B = B;
+    color.A = A;
+
+    return color;
 }
